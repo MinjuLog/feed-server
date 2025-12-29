@@ -39,11 +39,13 @@ public class FeedController {
 
     @MessageMapping("/feed/like")
     @SendTo("/topic/room.1/like")
-    public LikeResponse send(@Payload LikeRequest req, Principal principal) {
+    public LikeResponse pressLike(@Payload LikeRequest req, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
         long feedId = req.feedId();
         long userId = stompPrincipal.getUserId();
-        return new LikeResponse(feedId, feedService.like(userId, feedId));
+        feedService.like(userId, feedId);
+
+        return new LikeResponse(userId, feedId);
     }
 
     @ResponseBody

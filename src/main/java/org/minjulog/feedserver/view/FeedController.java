@@ -1,22 +1,15 @@
 package org.minjulog.feedserver.view;
 
 import java.security.Principal;
-import java.util.List;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.minjulog.feedserver.application.FeedService;
-import org.minjulog.feedserver.application.StompPrincipal;
-import org.minjulog.feedserver.view.dto.FeedMessage;
-import org.minjulog.feedserver.view.dto.FeedResponse;
-import org.minjulog.feedserver.view.dto.LikeRequest;
-import org.minjulog.feedserver.view.dto.LikeResponse;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.minjulog.feedserver.application.*;
+import org.minjulog.feedserver.view.dto.*;
+import org.springframework.messaging.handler.annotation.*;
 import org.springframework.stereotype.Controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -52,5 +45,11 @@ public class FeedController {
     @GetMapping("/api/feeds")
     public List<FeedResponse> findAllFeeds() {
         return feedService.findAllFeeds();
+    }
+
+    @ResponseBody
+    @GetMapping("/api/online-users")
+    public Set<String> findAllOnlineUsers() {
+        return feedService.findAllOnlineUsers();
     }
 }

@@ -1,0 +1,29 @@
+# Gradle build output
+build/
+out/
+
+# Gradle cache & wrapper temp
+.gradle/
+**/tmp/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+
+# Test & reports
+**/test-results/
+**/reports/
+
+# Generated sources (빌드 시 재생성됨)
+src/main/generated/
+
+# Logs
+*.log
+
+# Git
+.git
+.gitignore

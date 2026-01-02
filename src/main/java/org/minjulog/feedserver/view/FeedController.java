@@ -5,7 +5,7 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.minjulog.feedserver.application.*;
-import org.minjulog.feedserver.view.dto.*;
+import org.minjulog.feedserver.domain.feed.Feed;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.stereotype.Controller;
 
@@ -20,13 +20,16 @@ public class FeedController {
 
     @MessageMapping("/feed")
     @SendTo("/topic/room.1")
-    public FeedResponse send(@Payload FeedMessage payload, Principal principal) {
+    public FeedMessageResponse send(@Payload FeedMessageRequest payload, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
-        return FeedResponse.feedToFeedResponse(
-                feedService.saveFeed(
-                        stompPrincipal.getUserId(),
-                        payload.getContent()
-                )
+        Feed feed = feedService.saveFeed(stompPrincipal.getUserId(), payload.content());
+        return new FeedMessageResponse(
+                feed.getFeedId(),
+                feed.getAuthorId(),
+                feed.getAuthorName(),
+                feed.getContent(),
+                feed.getLikeCount(),
+                feed.getCreatedAt().toString()
         );
     }
 
@@ -43,8 +46,18 @@ public class FeedController {
 
     @ResponseBody
     @GetMapping("/api/feeds")
-    public List<FeedResponse> findAllFeeds() {
-        return feedService.findAllFeeds();
+    public List<FeedMessageResponse> findAllFeeds() {
+        List<Feed> feeds = feedService.findAllFeeds();
+        return feeds.stream()
+                .map(f -> new FeedMessageResponse(
+                        f.getFeedId(),
+                        f.getAuthorId(),
+                        f.getAuthorProfile().getUsername(),
+                        f.getContent(),
+                        f.getLikeCount(),
+                        f.getCreatedAt().toString()
+                ))
+                .toList();
     }
 
     @ResponseBody
@@ -52,4 +65,9 @@ public class FeedController {
     public Set<String> findAllOnlineUsers() {
         return feedService.findAllOnlineUsers();
     }
+
+    public record FeedMessageRequest(long authorId, String content) {}
+    public record FeedMessageResponse(long id, long authorId, String authorName, String content, int likes, String timestamp) {}
+    public record LikeRequest(long feedId) {}
+    public record LikeResponse(long actorId, long feedId) {}
 }

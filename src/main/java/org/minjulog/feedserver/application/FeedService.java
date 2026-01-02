@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import org.minjulog.feedserver.domain.feed.Feed;
 import org.minjulog.feedserver.domain.feed.FeedRepository;
 import org.minjulog.feedserver.domain.profile.ProfileRepository;
-import org.minjulog.feedserver.view.dto.FeedResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,18 +38,8 @@ public class FeedService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedResponse> findAllFeeds() {
-        List<Feed> feeds = feedRepository.findByDeletedFalseOrderByCreatedAtDesc();
-        return feeds.stream()
-                .map(f -> new FeedResponse(
-                        f.getFeedId(),
-                        f.getAuthorId(),              // 여기서 LAZY 초기화 발생 가능
-                        f.getAuthorProfile().getUsername(),
-                        f.getCreatedAt().toString(),
-                        f.getContent(),
-                        f.getLikeCount()
-                ))
-                .toList();
+    public List<Feed> findAllFeeds() {
+        return feedRepository.findByDeletedFalseOrderByCreatedAtDesc();
     }
 
     public Set<String> findAllOnlineUsers() {

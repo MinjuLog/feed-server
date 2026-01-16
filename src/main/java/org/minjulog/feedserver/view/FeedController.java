@@ -1,11 +1,25 @@
 package org.minjulog.feedserver.view;
 
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MinioClient;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
+import io.minio.http.Method;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.minjulog.feedserver.application.*;
 import org.minjulog.feedserver.domain.feed.Feed;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.stereotype.Controller;
 
@@ -17,19 +31,35 @@ import org.springframework.web.bind.annotation.*;
 public class FeedController {
 
     private final FeedService feedService;
+    private final MinioClient minioClient;
+
+    @Value("${env.MINIO.BUCKET_NAME}")
+    private String MINIO_BUCKET_NAME;
 
     @MessageMapping("/feed")
     @SendTo("/topic/room.1")
     public FeedMessageResponse send(@Payload FeedMessageRequest payload, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
-        Feed feed = feedService.saveFeed(stompPrincipal.getUserId(), payload.content());
+        Feed feed = feedService.saveFeed(
+                stompPrincipal.getUserId(),
+                payload.content(),
+                payload.attachments()
+        );
         return new FeedMessageResponse(
                 feed.getFeedId(),
                 feed.getAuthorId(),
                 feed.getAuthorName(),
                 feed.getContent(),
                 feed.getLikeCount(),
-                feed.getCreatedAt().toString()
+                feed.getCreatedAt().toString(),
+                feed.getAttachments().stream()
+                        .map(a -> new FeedAttachmentResponse(
+                                a.getObjectKey(),
+                                a.getOriginalName(),
+                                a.getContentType(),
+                                a.getSize()
+                        ))
+                        .toList()
         );
     }
 
@@ -55,7 +85,15 @@ public class FeedController {
                         f.getAuthorProfile().getUsername(),
                         f.getContent(),
                         f.getLikeCount(),
-                        f.getCreatedAt().toString()
+                        f.getCreatedAt().toString(),
+                        f.getAttachments().stream()
+                                .map(a -> new FeedAttachmentResponse(
+                                        a.getObjectKey(),
+                                        a.getOriginalName(),
+                                        a.getContentType(),
+                                        a.getSize()
+                                ))
+                                .toList()
                 ))
                 .toList();
     }
@@ -66,8 +104,55 @@ public class FeedController {
         return feedService.findAllOnlineUsers();
     }
 
-    public record FeedMessageRequest(long authorId, String content) {}
-    public record FeedMessageResponse(long id, long authorId, String authorName, String content, int likes, String timestamp) {}
+    @ResponseBody
+    @GetMapping("/api/pre-signed-url")
+        public PreSignedUrlResponse sendPreSignUrl(@ModelAttribute PreSignedUrlRequest req)
+            throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        String safeName = sanitize(req.fileName());
+        String objectKey = req.uploadType().name().toLowerCase() + "/" + UUID.randomUUID() + "-" + safeName;
+
+        String url = minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .method(Method.PUT)
+                        .bucket(MINIO_BUCKET_NAME)
+                        .object(objectKey)
+                        .expiry(10, TimeUnit.MINUTES)
+                        .build()
+        );
+
+        return new PreSignedUrlResponse(objectKey, url);
+    }
+
+    private String sanitize(String filename) {
+        if (filename == null) return "file";
+        return filename.replaceAll("[\\\\/\\r\\n\\t\0]", "_");
+    }
+
+    enum UploadType {
+        PROFILE, FEED
+    }
+
+    public record FeedMessageRequest(
+            long authorId,
+            String content,
+            List<FeedAttachmentRequest> attachments
+    ) {}
+
+    public record FeedMessageResponse(
+            long id,
+            long authorId,
+            String authorName,
+            String content,
+            int likes,
+            String timestamp,
+            List<FeedAttachmentResponse> attachments
+    ) {}
+
+    public record FeedAttachmentRequest(String objectKey, String originalName, String contentType, long size) {}
+    public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
     public record LikeRequest(long feedId) {}
     public record LikeResponse(long actorId, long feedId) {}
+    public record PreSignedUrlRequest(UploadType uploadType, String fileName) {}
+    public record PreSignedUrlResponse(String objectKey, String uploadUrl) {}
+
 }

@@ -3,7 +3,6 @@ package org.minjulog.feedserver.domain.feed;
 import java.util.List;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 
@@ -14,6 +13,6 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
     @Query("select f.likeCount from Feed f where f.feedId = :feedId")
     int findLikeCount(@Param("feedId") Long feedId);
 
-    @EntityGraph(attributePaths = "authorProfile")
+    @EntityGraph(attributePaths = {"authorProfile", "attachments"})
     List<Feed> findByDeletedFalseOrderByCreatedAtDesc();
 }

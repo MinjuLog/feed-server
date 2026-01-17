@@ -10,6 +10,7 @@ import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import io.minio.http.Method;
 import java.io.IOException;
+import java.net.URI;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -120,7 +121,20 @@ public class FeedController {
                         .build()
         );
 
-        return new PreSignedUrlResponse(objectKey, url);
+        return new PreSignedUrlResponse(objectKey, rewritePreSignedUrl(url));
+    }
+
+    // 임시로 처리 (추후 정적 리소스 업로드 URL 을 위한 서브 도메인 설정 필요)
+    private String rewritePreSignedUrl(String preSignedUrl) {
+        // 외부에서 접근 가능한 base (nginx)
+        String externalBase = "http://perfume-palette-for-u.com:1107/minjulog-static";
+
+        URI u = URI.create(preSignedUrl);
+
+        // u.getPath(): /minjulog/feed/xxx.jpg
+        String path = u.getPath().replaceFirst("^/minjulog", ""); // -> /feed/xxx.jpg
+
+        return externalBase + path + (u.getQuery() != null ? "?" + u.getQuery() : "");
     }
 
     private String sanitize(String filename) {

@@ -33,6 +33,7 @@ public class Feed {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "feed_id")
     private List<FeedAttachment> attachments = new ArrayList<>();

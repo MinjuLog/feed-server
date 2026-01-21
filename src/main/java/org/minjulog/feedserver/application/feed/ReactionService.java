@@ -68,6 +68,7 @@ public class ReactionService {
         int newCount = reactionCountRepository.findCount(feedId, reactionType.getId()).orElse(0);
 
         return new ReactionResponse(
+                actorId,
                 feedId,
                 reactionType.getKey(),
                 pressedByMe,

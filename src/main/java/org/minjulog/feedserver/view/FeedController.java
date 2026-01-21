@@ -69,8 +69,8 @@ public class FeedController {
         );
     }
 
-    @MessageMapping("/feed/react")
-    @SendTo("/topic/room.1/like")
+    @MessageMapping("/feed/reaction")
+    @SendTo("/topic/room.1/reaction")
     public ReactionResponse sendReaction(@Payload ReactionRequest req, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
         Long feedId = req.feedId();
@@ -154,8 +154,9 @@ public class FeedController {
 
     public record ReactionRequest(Long feedId, String key) {}
     public record ReactionResponse(
+            Long actorId,
             Long feedId,
-            String reactionKey,
+            String key,
             boolean pressedByMe,
             int count,
             ReactionRenderType renderType,

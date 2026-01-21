@@ -39,7 +39,7 @@ public class FeedController {
     @Value("${env.MINIO.BUCKET_NAME}")
     private String MINIO_BUCKET_NAME;
 
-    @Value("${MINIO_EXTERNAL_BASE:http://localhost:1107/minjulog-static}")
+    @Value("${env.MINIO.EXTERNAL_BASE}")
     private String MINIO_EXTERNAL_BASE;
 
     @MessageMapping("/feed")
@@ -69,14 +69,15 @@ public class FeedController {
         );
     }
 
-    @MessageMapping("/feed/like")
+    @MessageMapping("/feed/react")
     @SendTo("/topic/room.1/like")
-    public LikeResponse pressLike(@Payload LikeRequest req, Principal principal) {
+    public ReactionResponse sendReaction(@Payload ReactionRequest req, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
-        long feedId = req.feedId();
-        long userId = stompPrincipal.getUserId();
+        Long feedId = req.feedId();
+        Long userId = stompPrincipal.getUserId();
+        String key = req.key();
 
-        return new LikeResponse(userId, feedId);
+        return feedService.applyReaction(userId, feedId, key);
     }
 
     @ResponseBody
@@ -150,8 +151,18 @@ public class FeedController {
     public record FeedAttachmentRequest(String objectKey, String originalName, String contentType, long size) {}
     public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
     public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, Long count, boolean isPressed) {}
-    public record LikeRequest(long feedId) {}
-    public record LikeResponse(long actorId, long feedId) {}
+
+    public record ReactionRequest(Long feedId, String key) {}
+    public record ReactionResponse(
+            Long feedId,
+            String reactionKey,
+            boolean pressedByMe,
+            int count,
+            ReactionRenderType renderType,
+            String unicode,
+            String imageUrl
+    ) {}
+
     public record PreSignedUrlRequest(UploadType uploadType, String fileName) {}
     public record PreSignedUrlResponse(String objectKey, String uploadUrl) {}
 

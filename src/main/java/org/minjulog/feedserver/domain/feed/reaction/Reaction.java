@@ -40,5 +40,6 @@ public class Reaction {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reaction_type_id", nullable = false)
-    private ReactionType type; // LIKE, LOVE, LAUGH ...
+    private ReactionType type;
+    
 }

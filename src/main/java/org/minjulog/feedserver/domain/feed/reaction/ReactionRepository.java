@@ -1,6 +1,7 @@
 package org.minjulog.feedserver.domain.feed.reaction;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,6 +20,32 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
     List<MyReactionRow> findMyReactions(
             @Param("viewerId") long viewerId,
             @Param("feedIds") List<Long> feedIds
+    );
+
+    @Query("""
+        select case when count(r) > 0 then true else false end
+        from Reaction r
+        where r.feed.feedId = :feedId
+          and r.profile.id = :profileId
+          and r.type.id = :reactionTypeId
+    """)
+    boolean existsByFeedIdAndProfileIdAndReactionTypeId(
+            @Param("feedId") Long feedId,
+            @Param("profileId") Long profileId,
+            @Param("reactionTypeId") Long reactionTypeId
+    );
+
+    @Modifying
+    @Query("""
+        delete from Reaction r
+        where r.feed.feedId = :feedId
+          and r.profile.profileId = :profileId
+          and r.type.id = :reactionTypeId
+    """)
+    Long deleteByFeedIdAndProfileIdAndReactionTypeId(
+            @Param("feedId") Long feedId,
+            @Param("profileId") Long profileId,
+            @Param("reactionTypeId") Long reactionTypeId
     );
 
     public interface MyReactionRow {

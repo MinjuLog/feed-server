@@ -8,13 +8,12 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import org.minjulog.feedserver.application.presence.PresenceStore;
-import org.minjulog.feedserver.domain.feed.Feed;
-import org.minjulog.feedserver.domain.feed.attachment.Attachment;
-import org.minjulog.feedserver.domain.feed.FeedRepository;
-import org.minjulog.feedserver.domain.feed.attachment.AttachmentRepository;
-import org.minjulog.feedserver.domain.feed.reaction.ReactionRepository;
-import org.minjulog.feedserver.domain.feed.reaction.count.ReactionCountRepository;
-import org.minjulog.feedserver.domain.profile.ProfileRepository;
+import org.minjulog.feedserver.domain.feed.*;
+import org.minjulog.feedserver.domain.feed.attachment.*;
+import org.minjulog.feedserver.domain.feed.reaction.*;
+import org.minjulog.feedserver.domain.feed.reaction.count.*;
+import org.minjulog.feedserver.domain.feed.reaction.type.ReactionTypeRepository;
+import org.minjulog.feedserver.domain.profile.*;
 import org.minjulog.feedserver.view.FeedController;
 import org.minjulog.feedserver.view.FeedController.*;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
     private final FeedRepository feedRepository;
+
+    private final ReactionService reactionService;
+
     private final ReactionCountRepository reactionCountRepository;
     private final ReactionRepository reactionRepository;
     private final AttachmentRepository attachmentRepository;
@@ -57,6 +59,11 @@ public class FeedService {
         feedAttachmentsDtoToEntity(attachments).forEach(feed::addAttachment);
 
         return feedRepository.saveAndFlush(feed);
+    }
+
+    @Transactional
+    public ReactionResponse applyReaction(Long actorId, Long feedId, String key) {
+        return reactionService.applyReaction(actorId, feedId, key);
     }
 
     @Transactional(readOnly = true)

@@ -38,6 +38,10 @@ public class Feed {
     @JoinColumn(name = "feed_id")
     private List<FeedAttachment> attachments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FeedReaction> reactions = new ArrayList<>();
+
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));

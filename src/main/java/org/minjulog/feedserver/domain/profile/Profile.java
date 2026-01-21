@@ -1,9 +1,12 @@
 package org.minjulog.feedserver.domain.profile;
 
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.*;
+import org.minjulog.feedserver.domain.feed.FeedReaction;
 
 @Entity @Table(name = "profile")
 @Getter @Builder
@@ -45,6 +48,9 @@ public class Profile {
 
     @Column(nullable = false)
     private String username;
+
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FeedReaction> reactions = new ArrayList<>();
 
     public Profile (long userId) {
         this.userId = userId;

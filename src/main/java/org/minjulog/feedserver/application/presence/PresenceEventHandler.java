@@ -1,4 +1,4 @@
-package org.minjulog.feedserver.application;
+package org.minjulog.feedserver.application.presence;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

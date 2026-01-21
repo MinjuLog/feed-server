@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.*;
-import org.minjulog.feedserver.domain.feed.FeedReaction;
 
 @Entity @Table(name = "profile")
 @Getter @Builder

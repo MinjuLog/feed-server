@@ -3,7 +3,7 @@ package org.minjulog.feedserver.infra;
 import jakarta.transaction.Transactional;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.application.StompPrincipal;
+import org.minjulog.feedserver.application.principal.StompPrincipal;
 import org.minjulog.feedserver.domain.profile.*;
 import org.springframework.messaging.*;
 import org.springframework.messaging.simp.stomp.*;

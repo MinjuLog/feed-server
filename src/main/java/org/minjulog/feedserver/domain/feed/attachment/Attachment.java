@@ -1,11 +1,12 @@
-package org.minjulog.feedserver.domain.feed;
+package org.minjulog.feedserver.domain.feed.attachment;
 import jakarta.persistence.*;
 import lombok.*;
+import org.minjulog.feedserver.domain.feed.Feed;
 
 @Entity
 @NoArgsConstructor @AllArgsConstructor
 @Builder @Getter @Setter
-public class FeedAttachment {
+public class Attachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

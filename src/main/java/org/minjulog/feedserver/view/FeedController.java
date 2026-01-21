@@ -18,8 +18,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.minjulog.feedserver.application.*;
+import org.minjulog.feedserver.application.feed.FeedService;
+import org.minjulog.feedserver.application.principal.StompPrincipal;
 import org.minjulog.feedserver.domain.feed.Feed;
+import org.minjulog.feedserver.domain.feed.reaction.type.ReactionRenderType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.stereotype.Controller;
@@ -54,7 +56,6 @@ public class FeedController {
                 feed.getAuthorId(),
                 feed.getAuthorName(),
                 feed.getContent(),
-                feed.getLikeCount(),
                 feed.getCreatedAt().toString(),
                 feed.getAttachments().stream()
                         .map(a -> new FeedAttachmentResponse(
@@ -63,7 +64,8 @@ public class FeedController {
                                 a.getContentType(),
                                 a.getSize()
                         ))
-                        .toList()
+                        .toList(),
+                new ArrayList<>()
         );
     }
 
@@ -82,13 +84,13 @@ public class FeedController {
     @GetMapping("/api/feeds")
     public List<FeedMessageResponse> findAllFeeds() {
         List<Feed> feeds = feedService.findAllFeeds();
+
         return feeds.stream()
                 .map(f -> new FeedMessageResponse(
                         f.getFeedId(),
                         f.getAuthorId(),
                         f.getAuthorProfile().getUsername(),
                         f.getContent(),
-                        f.getLikeCount(),
                         f.getCreatedAt().toString(),
                         f.getAttachments().stream()
                                 .map(a -> new FeedAttachmentResponse(
@@ -97,7 +99,11 @@ public class FeedController {
                                         a.getContentType(),
                                         a.getSize()
                                 ))
-                                .toList()
+                                .toList(),
+                        f.getReactionCounts().stream()
+                                .map(a -> new FeedReactionResponse(
+                                        a.get
+                                ))
                 ))
                 .toList();
     }
@@ -156,13 +162,14 @@ public class FeedController {
             long authorId,
             String authorName,
             String content,
-            int likes,
             String timestamp,
-            List<FeedAttachmentResponse> attachments
+            List<FeedAttachmentResponse> attachments,
+            List<FeedReactionResponse> reactions
     ) {}
 
     public record FeedAttachmentRequest(String objectKey, String originalName, String contentType, long size) {}
     public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
+    public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, boolean isPressed) {}
     public record LikeRequest(long feedId) {}
     public record LikeResponse(long actorId, long feedId) {}
     public record PreSignedUrlRequest(UploadType uploadType, String fileName) {}

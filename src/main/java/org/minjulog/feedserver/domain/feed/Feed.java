@@ -6,6 +6,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
+import org.minjulog.feedserver.domain.feed.attachment.Attachment;
+import org.minjulog.feedserver.domain.feed.reaction.count.ReactionCount;
 import org.minjulog.feedserver.domain.profile.Profile;
 
 @Entity @Table(name = "feed")
@@ -25,9 +27,6 @@ public class Feed {
     private String content;
 
     @Column(nullable = false)
-    private int likeCount;
-
-    @Column(nullable = false)
     private boolean deleted = false;
 
     @Column(nullable = false, updatable = false)
@@ -36,25 +35,15 @@ public class Feed {
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "feed_id")
-    private List<FeedAttachment> attachments = new ArrayList<>();
+    private List<Attachment> attachments = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "feed", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FeedReaction> reactions = new ArrayList<>();
-
+    private List<ReactionCount> reactionCounts = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-    }
-
-    public void like() {
-        this.likeCount++;
-    }
-
-    public void unlike() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
     }
 
     public long getAuthorId() {
@@ -65,7 +54,7 @@ public class Feed {
         return this.getAuthorProfile().getUsername();
     }
 
-    public void addAttachment(FeedAttachment attachment) {
+    public void addAttachment(Attachment attachment) {
         if (this.attachments == null) this.attachments = new ArrayList<>();
         attachments.add(attachment);
         attachment.setFeed(this);

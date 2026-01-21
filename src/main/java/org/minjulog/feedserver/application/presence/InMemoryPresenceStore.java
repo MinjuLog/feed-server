@@ -1,4 +1,4 @@
-package org.minjulog.feedserver.application;
+package org.minjulog.feedserver.application.presence;
 
 import java.util.Optional;
 import java.util.Set;

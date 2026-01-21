@@ -1,7 +1,7 @@
 package org.minjulog.feedserver.infra;
 
-import org.minjulog.feedserver.application.InMemoryPresenceStore;
-import org.minjulog.feedserver.application.PresenceStore;
+import org.minjulog.feedserver.application.presence.InMemoryPresenceStore;
+import org.minjulog.feedserver.application.presence.PresenceStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

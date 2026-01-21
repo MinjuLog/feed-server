@@ -1,4 +1,4 @@
-package org.minjulog.feedserver.application;
+package org.minjulog.feedserver.application.principal;
 
 import java.security.Principal;
 import lombok.AllArgsConstructor;

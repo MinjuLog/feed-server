@@ -1,5 +1,6 @@
 package org.minjulog.feedserver.domain.feed.reaction.count;
 
+import org.minjulog.feedserver.domain.feed.reaction.type.ReactionRenderType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,8 +24,9 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
     public interface ReactionCountRow {
         Long getFeedId();
         String getReactionKey();
+        ReactionRenderType getReactionRenderType();
         String getImageUrl();
-        String unicode();
-        Integer getCount();
+        String getUnicode();
+        Long getCount();
     }
 }

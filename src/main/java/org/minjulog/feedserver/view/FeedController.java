@@ -75,38 +75,18 @@ public class FeedController {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
         long feedId = req.feedId();
         long userId = stompPrincipal.getUserId();
-        feedService.like(userId, feedId);
 
         return new LikeResponse(userId, feedId);
     }
 
     @ResponseBody
     @GetMapping("/api/feeds")
-    public List<FeedMessageResponse> findAllFeeds() {
-        List<Feed> feeds = feedService.findAllFeeds();
-
-        return feeds.stream()
-                .map(f -> new FeedMessageResponse(
-                        f.getFeedId(),
-                        f.getAuthorId(),
-                        f.getAuthorProfile().getUsername(),
-                        f.getContent(),
-                        f.getCreatedAt().toString(),
-                        f.getAttachments().stream()
-                                .map(a -> new FeedAttachmentResponse(
-                                        a.getObjectKey(),
-                                        a.getOriginalName(),
-                                        a.getContentType(),
-                                        a.getSize()
-                                ))
-                                .toList(),
-                        f.getReactionCounts().stream()
-                                .map(a -> new FeedReactionResponse(
-                                        a.get
-                                ))
-                ))
-                .toList();
+    public List<FeedMessageResponse> findAllFeeds(
+            @RequestHeader("X-User-Id") long userId
+    ) {
+        return feedService.findAllFeeds(userId);
     }
+
 
     @ResponseBody
     @GetMapping("/api/online-users")
@@ -158,8 +138,8 @@ public class FeedController {
     ) {}
 
     public record FeedMessageResponse(
-            long id,
-            long authorId,
+            Long id,
+            Long authorId,
             String authorName,
             String content,
             String timestamp,
@@ -169,7 +149,7 @@ public class FeedController {
 
     public record FeedAttachmentRequest(String objectKey, String originalName, String contentType, long size) {}
     public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
-    public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, boolean isPressed) {}
+    public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, Long count, boolean isPressed) {}
     public record LikeRequest(long feedId) {}
     public record LikeResponse(long actorId, long feedId) {}
     public record PreSignedUrlRequest(UploadType uploadType, String fileName) {}

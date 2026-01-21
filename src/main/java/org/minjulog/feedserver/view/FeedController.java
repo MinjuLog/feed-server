@@ -37,6 +37,9 @@ public class FeedController {
     @Value("${env.MINIO.BUCKET_NAME}")
     private String MINIO_BUCKET_NAME;
 
+    @Value("${MINIO_EXTERNAL_BASE:http://localhost:1107/minjulog-static}")
+    private String MINIO_EXTERNAL_BASE;
+
     @MessageMapping("/feed")
     @SendTo("/topic/room.1")
     public FeedMessageResponse send(@Payload FeedMessageRequest payload, Principal principal) {
@@ -126,15 +129,11 @@ public class FeedController {
 
     // 임시로 처리 (추후 정적 리소스 업로드 URL 을 위한 서브 도메인 설정 필요)
     private String rewritePreSignedUrl(String preSignedUrl) {
-        // 외부에서 접근 가능한 base (nginx)
-        String externalBase = "https://perfume-palette-for-u.com:1107/minjulog-static";
-
         URI u = URI.create(preSignedUrl);
-
         // u.getPath(): /minjulog/feed/xxx.jpg
         String path = u.getPath().replaceFirst("^/minjulog", ""); // -> /feed/xxx.jpg
-
-        return externalBase + path + (u.getQuery() != null ? "?" + u.getQuery() : "");
+        // 외부에서 접근 가능한 base (nginx)
+        return MINIO_EXTERNAL_BASE + path + (u.getQuery() != null ? "?" + u.getQuery() : "");
     }
 
     private String sanitize(String filename) {

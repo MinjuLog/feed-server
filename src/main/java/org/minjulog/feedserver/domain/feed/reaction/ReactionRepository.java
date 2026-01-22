@@ -48,6 +48,17 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
             @Param("reactionTypeId") Long reactionTypeId
     );
 
+    @Query("""
+                select distinct r.profile.profileId
+                from Reaction r
+                where r.feed.feedId = :feedId
+                  and r.type.key = :reactionKey
+            """)
+    List<Long> findProfileIdsByFeedIdAndReactionKey(
+            @Param("feedId") Long feedId,
+            @Param("reactionKey") String reactionKey
+    );
+
     public interface MyReactionRow {
         Long getFeedId();
         String getReactionKey();

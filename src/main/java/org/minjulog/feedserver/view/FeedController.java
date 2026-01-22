@@ -88,6 +88,16 @@ public class FeedController {
         return feedService.findAllFeeds(userId);
     }
 
+    @ResponseBody
+    @GetMapping("/api/feeds/{feedId}/reactions/{reactionKey}/users")
+    public ReactionPressedUsersResponse sendReactionPressedUsers(
+            @PathVariable Long feedId,
+            @PathVariable String reactionKey,
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        return new ReactionPressedUsersResponse(feedService.findReactionPressedUsers(feedId, userId, reactionKey));
+    }
+
 
     @ResponseBody
     @GetMapping("/api/online-users")
@@ -152,6 +162,9 @@ public class FeedController {
     public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
     public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, Long count, boolean isPressed) {}
 
+    public record ReactionPressedUsersResponse(
+            Set<String> usernames
+    ) {}
     public record ReactionRequest(Long feedId, String key) {}
     public record ReactionResponse(
             Long actorId,

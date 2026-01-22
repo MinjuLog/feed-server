@@ -24,29 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
     private final FeedRepository feedRepository;
-
     private final ReactionService reactionService;
-
     private final ReactionCountRepository reactionCountRepository;
     private final ReactionRepository reactionRepository;
     private final AttachmentRepository attachmentRepository;
-
     private final ProfileRepository profileRepository;
-
     private final PresenceStore presenceStore;
-
-    private List<Attachment> feedAttachmentsDtoToEntity(
-            List<FeedAttachmentRequest> attachments
-    ) {
-        return attachments.stream()
-                .map(attachment -> Attachment.builder()
-                        .objectKey(attachment.objectKey())
-                        .originalName(attachment.originalName())
-                        .contentType(attachment.contentType())
-                        .build()
-                )
-                .toList();
-    }
 
     @Transactional
     public Feed saveFeed(long userId, String content, List<FeedAttachmentRequest> attachments) {
@@ -59,11 +42,6 @@ public class FeedService {
         feedAttachmentsDtoToEntity(attachments).forEach(feed::addAttachment);
 
         return feedRepository.saveAndFlush(feed);
-    }
-
-    @Transactional
-    public ReactionResponse applyReaction(Long actorId, Long feedId, String key) {
-        return reactionService.applyReaction(actorId, feedId, key);
     }
 
     @Transactional(readOnly = true)
@@ -151,7 +129,36 @@ public class FeedService {
                 .toList();
     }
 
+    @Transactional
+    public ReactionResponse applyReaction(Long actorId, Long feedId, String key) {
+        return reactionService.applyReaction(actorId, feedId, key);
+    }
 
+    @Transactional(readOnly = true)
+    public Set<String> findReactionPressedUsers(Long feedId, Long userId, String reactionKey) {
+        // 1) reaction에서 profileId만 조회 (중복 제거)
+        List<Long> profileIds = reactionRepository.findProfileIdsByFeedIdAndReactionKey(feedId, reactionKey);
+
+        if (profileIds.isEmpty()) return Set.of();
+
+        // 2) profileId들로 username 한 번에 조회
+        // (정렬이 필요하면 아래 repository에서 ORDER BY를 걸거나, profileIds 순서대로 매핑)
+        return profileRepository.findUsernamesByProfileIdIn(profileIds);
+    }
+
+
+    private List<Attachment> feedAttachmentsDtoToEntity(
+            List<FeedAttachmentRequest> attachments
+    ) {
+        return attachments.stream()
+                .map(attachment -> Attachment.builder()
+                        .objectKey(attachment.objectKey())
+                        .originalName(attachment.originalName())
+                        .contentType(attachment.contentType())
+                        .build()
+                )
+                .toList();
+    }
     public Set<String> findAllOnlineUsers() {
         return presenceStore.getOnlineUsers();
     }

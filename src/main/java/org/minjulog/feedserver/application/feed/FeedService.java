@@ -12,7 +12,6 @@ import org.minjulog.feedserver.domain.feed.*;
 import org.minjulog.feedserver.domain.feed.attachment.*;
 import org.minjulog.feedserver.domain.feed.reaction.*;
 import org.minjulog.feedserver.domain.feed.reaction.count.*;
-import org.minjulog.feedserver.domain.feed.reaction.type.ReactionTypeRepository;
 import org.minjulog.feedserver.domain.profile.*;
 import org.minjulog.feedserver.view.FeedController;
 import org.minjulog.feedserver.view.FeedController.*;
@@ -83,9 +82,9 @@ public class FeedService {
 
                                             return new FeedReactionResponse(
                                                     row.getReactionKey(),
-                                                    row.getReactionRenderType(),
+                                                    row.getEmojiType(),
                                                     row.getImageUrl(),
-                                                    row.getUnicode(),
+                                                    row.getEmoji(),
                                                     row.getCount(),
                                                     pressedByMe
                                             );
@@ -130,8 +129,8 @@ public class FeedService {
     }
 
     @Transactional
-    public ReactionResponse applyReaction(Long actorId, Long feedId, String key) {
-        return reactionService.applyReaction(actorId, feedId, key);
+    public ReactionResponse applyReaction(Long actorId, Long feedId, String key, String emoji) {
+        return reactionService.applyReaction(actorId, feedId, key, emoji);
     }
 
     @Transactional(readOnly = true)
@@ -146,6 +145,9 @@ public class FeedService {
         return profileRepository.findUsernamesByProfileIdIn(profileIds);
     }
 
+    public Set<String> findAllOnlineUsers() {
+        return presenceStore.getOnlineUsers();
+    }
 
     private List<Attachment> feedAttachmentsDtoToEntity(
             List<FeedAttachmentRequest> attachments
@@ -158,8 +160,5 @@ public class FeedService {
                         .build()
                 )
                 .toList();
-    }
-    public Set<String> findAllOnlineUsers() {
-        return presenceStore.getOnlineUsers();
     }
 }

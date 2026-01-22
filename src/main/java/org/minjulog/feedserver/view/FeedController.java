@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.minjulog.feedserver.application.feed.FeedService;
 import org.minjulog.feedserver.application.principal.StompPrincipal;
 import org.minjulog.feedserver.domain.feed.Feed;
-import org.minjulog.feedserver.domain.feed.reaction.type.ReactionRenderType;
+import org.minjulog.feedserver.domain.feed.reaction.type.EmojiType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.stereotype.Controller;
@@ -74,10 +74,11 @@ public class FeedController {
     public ReactionResponse sendReaction(@Payload ReactionRequest req, Principal principal) {
         StompPrincipal stompPrincipal = (StompPrincipal) principal;
         Long feedId = req.feedId();
-        Long userId = stompPrincipal.getUserId();
         String key = req.key();
+        String emoji = req.emoji();
+        Long userId = stompPrincipal.getUserId();
 
-        return feedService.applyReaction(userId, feedId, key);
+        return feedService.applyReaction(userId, feedId, key, emoji);
     }
 
     @ResponseBody
@@ -160,20 +161,20 @@ public class FeedController {
 
     public record FeedAttachmentRequest(String objectKey, String originalName, String contentType, long size) {}
     public record FeedAttachmentResponse(String objectKey, String originalName, String contentType, long size) {}
-    public record FeedReactionResponse(String key, ReactionRenderType renderType, String imageUrl, String unicode, Long count, boolean isPressed) {}
+    public record FeedReactionResponse(String key, EmojiType emojiType, String imageUrl, String emoji, Long count, boolean isPressed) {}
 
     public record ReactionPressedUsersResponse(
             Set<String> usernames
     ) {}
-    public record ReactionRequest(Long feedId, String key) {}
+    public record ReactionRequest(Long feedId, String key, String emoji) {}
     public record ReactionResponse(
             Long actorId,
             Long feedId,
             String key,
             boolean pressedByMe,
             int count,
-            ReactionRenderType renderType,
-            String unicode,
+            EmojiType emojiType,
+            String emoji,
             String imageUrl
     ) {}
 

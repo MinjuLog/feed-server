@@ -1,7 +1,7 @@
 package org.minjulog.feedserver.domain.feed.reaction.type;
 
-public enum ReactionRenderType {
-    UNICODE,
-    IMAGE
+public enum EmojiType {
+    DEFAULT,
+    CUSTOM
 }
 

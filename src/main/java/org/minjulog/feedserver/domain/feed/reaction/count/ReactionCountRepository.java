@@ -1,6 +1,6 @@
 package org.minjulog.feedserver.domain.feed.reaction.count;
 
-import org.minjulog.feedserver.domain.feed.reaction.type.ReactionRenderType;
+import org.minjulog.feedserver.domain.feed.reaction.type.EmojiType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +15,7 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
                 select rc.feed.feedId as feedId,
                        rt.key as reactionKey,
                        rt.imageUrl as imageUrl,
-                       rt.unicode as unicode,
+                       rt.emoji as emoji,
                        rc.count as count
                 from ReactionCount rc
                 join rc.reactionType rt
@@ -26,9 +26,9 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
     public interface ReactionCountRow {
         Long getFeedId();
         String getReactionKey();
-        ReactionRenderType getReactionRenderType();
+        EmojiType getEmojiType();
         String getImageUrl();
-        String getUnicode();
+        String getEmoji();
         Long getCount();
     }
 

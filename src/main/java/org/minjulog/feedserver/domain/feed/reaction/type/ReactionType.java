@@ -31,22 +31,13 @@ public class ReactionType {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
-    private ReactionRenderType renderType; // UNICODE / IMAGE
+    private EmojiType emojiType;
 
-    // UNICODE일 때 사용 (복합 이모지 포함)
     @Column(length = 32)
-    private String unicode; // 예: "👍", "👨‍👩‍👧‍👦"
+    private String emoji;
 
     // IMAGE일 때 사용 (MinIO/S3 URL 또는 objectKey)
     @Column(length = 512)
     private String imageUrl;
 
-    public void validate() {
-        if (renderType == ReactionRenderType.UNICODE && (unicode == null || unicode.isBlank())) {
-            throw new IllegalStateException("UNICODE reaction must have unicode");
-        }
-        if (renderType == ReactionRenderType.IMAGE && (imageUrl == null || imageUrl.isBlank())) {
-            throw new IllegalStateException("IMAGE reaction must have imageUrl");
-        }
-    }
 }

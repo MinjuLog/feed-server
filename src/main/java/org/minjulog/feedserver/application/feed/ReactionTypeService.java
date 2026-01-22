@@ -1,9 +1,10 @@
 package org.minjulog.feedserver.application.feed;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.feed.reaction.type.ReactionRenderType;
+import org.minjulog.feedserver.domain.feed.reaction.type.EmojiType;
 import org.minjulog.feedserver.domain.feed.reaction.type.ReactionType;
 import org.minjulog.feedserver.domain.feed.reaction.type.ReactionTypeRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,23 +15,33 @@ public class ReactionTypeService {
     private final ReactionTypeRepository reactionTypeRepository;
 
     @Transactional
-    public ReactionType createUnicodeReaction(String key, String unicode) {
-        ReactionType reactionType = ReactionType.builder()
-                .workspaceId(1L)
-                .key(key)
-                .renderType(ReactionRenderType.UNICODE)
-                .unicode(unicode)
-                .build();
-
-        return reactionTypeRepository.saveAndFlush(reactionType);
+    public ReactionType getOrCreateDefaultEmoji(String key, String unicodeEmoji) {
+        return reactionTypeRepository.findByKey(key)
+                .orElseGet(() -> {
+                    try {
+                        return reactionTypeRepository.save(
+                                ReactionType.builder()
+                                        .workspaceId(1L)
+                                        .key(key)
+                                        .emojiType(EmojiType.DEFAULT)
+                                        .emoji(unicodeEmoji)
+                                        .build()
+                        );
+                    } catch (DataIntegrityViolationException e) {
+                        // 동시성으로 이미 생성된 경우 재조회
+                        return reactionTypeRepository.findByKey(key)
+                                .orElseThrow(() -> e);
+                    }
+                });
     }
 
+
     @Transactional
-    public ReactionType createImageReaction(String key, String imageUrl) {
+    public ReactionType createImageEmoji(String key, String imageUrl) {
         ReactionType reactionType = ReactionType.builder()
                 .workspaceId(1L)
                 .key(key)
-                .renderType(ReactionRenderType.IMAGE)
+                .emojiType(EmojiType.CUSTOM)
                 .imageUrl(imageUrl)
                 .build();
 

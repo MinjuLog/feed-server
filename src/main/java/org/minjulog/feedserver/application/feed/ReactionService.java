@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ReactionService {
 
+    private final ReactionTypeService reactionTypeService;
+
     private final FeedRepository feedRepository;
     private final ProfileRepository profileRepository;
 
@@ -27,7 +29,7 @@ public class ReactionService {
     private final ReactionCountRepository reactionCountRepository;
 
     @Transactional
-    public ReactionResponse applyReaction(Long actorId, Long feedId, String key) {
+    public ReactionResponse applyReaction(Long actorId, Long feedId, String key, String emoji) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
 
@@ -37,9 +39,9 @@ public class ReactionService {
 
         Profile actor = profileRepository.findProfileByUserId(actorId);
 
-        ReactionType reactionType = reactionTypeRepository
-                .findByKey(key)
-                .orElseThrow(() -> new IllegalArgumentException("reaction type not found"));
+        ReactionType reactionType =
+                reactionTypeService.getOrCreateDefaultEmoji(key, emoji);
+
 
         // 토글
         boolean pressedByMe;
@@ -73,12 +75,12 @@ public class ReactionService {
                 reactionType.getKey(),
                 pressedByMe,
                 newCount,
-                reactionType.getRenderType(),
-                reactionType.getUnicode(),
+                reactionType.getEmojiType(),
+                reactionType.getEmoji(),
                 reactionType.getImageUrl()
         );
     }
 
-    
+
 }
 

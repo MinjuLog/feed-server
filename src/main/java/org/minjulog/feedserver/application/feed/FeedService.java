@@ -13,8 +13,10 @@ import org.minjulog.feedserver.domain.feed.attachment.*;
 import org.minjulog.feedserver.domain.feed.reaction.*;
 import org.minjulog.feedserver.domain.feed.reaction.count.*;
 import org.minjulog.feedserver.domain.profile.*;
-import org.minjulog.feedserver.view.FeedController;
-import org.minjulog.feedserver.view.FeedController.*;
+import org.minjulog.feedserver.presentation.dto.AttachmentDto;
+import org.minjulog.feedserver.presentation.dto.FeedDto;
+import org.minjulog.feedserver.presentation.dto.ReactionDto;
+import org.minjulog.feedserver.presentation.websocket.payload.AttachmentPayloadDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,7 @@ public class FeedService {
     private final PresenceStore presenceStore;
 
     @Transactional
-    public Feed saveFeed(long userId, String content, List<FeedAttachmentRequest> attachments) {
+    public Feed saveFeed(long userId, String content, List<AttachmentPayloadDto.Request> attachments) {
         Feed feed = Feed.builder()
                 .authorProfile(profileRepository.findProfileByUserId(userId))
                 .content(content)
@@ -44,7 +46,7 @@ public class FeedService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedController.FeedMessageResponse> findAllFeeds(Long viewerId) {
+    public List<FeedDto.Response> findAllFeeds(Long viewerId) {
         List<Feed> feeds = feedRepository.findByDeletedFalseOrderByCreatedAtDesc();
         if (feeds.isEmpty()) return List.of();
         List<Long> feedIds = feeds.stream().map(Feed::getFeedId).toList();
@@ -66,7 +68,7 @@ public class FeedService {
         List<ReactionCountRepository.ReactionCountRow> reactionCountRows =
                 reactionCountRepository.findReactionCountsByFeedIds(feedIds);
 
-        Map<Long, List<FeedReactionResponse>> reactionsByFeedId =
+        Map<Long, List<ReactionDto.Response>> reactionsByFeedId =
                 reactionCountRows.stream()
                         .collect(Collectors.groupingBy(
                                 ReactionCountRepository.ReactionCountRow::getFeedId,
@@ -80,7 +82,7 @@ public class FeedService {
                                             boolean pressedByMe =
                                                     myKeys.contains(row.getReactionKey());
 
-                                            return new FeedReactionResponse(
+                                            return new ReactionDto.Response(
                                                     row.getReactionKey(),
                                                     row.getEmojiType(),
                                                     row.getImageUrl(),
@@ -96,11 +98,11 @@ public class FeedService {
         // 3) 첨부 (feedId -> List<AttachmentResponse>)
         List<Attachment> attachments = attachmentRepository.findByFeedIds(feedIds);
 
-        Map<Long, List<FeedAttachmentResponse>> attachmentsByFeedId = attachments.stream()
+        Map<Long, List<AttachmentDto.Response>> attachmentsByFeedId = attachments.stream()
                 .collect(java.util.stream.Collectors.groupingBy(
                         a -> a.getFeed().getFeedId(),
                         java.util.stream.Collectors.mapping(a ->
-                                        new FeedController.FeedAttachmentResponse(
+                                        new AttachmentDto.Response(
                                                 a.getObjectKey(),
                                                 a.getOriginalName(),
                                                 a.getContentType(),
@@ -115,7 +117,7 @@ public class FeedService {
                 .map(f -> {
                     long feedId = f.getFeedId();
 
-                    return new FeedMessageResponse(
+                    return new FeedDto.Response(
                             feedId,
                             f.getAuthorId(),
                             f.getAuthorProfile().getUsername(),
@@ -126,11 +128,6 @@ public class FeedService {
                     );
                 })
                 .toList();
-    }
-
-    @Transactional
-    public ReactionResponse applyReaction(Long actorId, Long feedId, String key, String emoji) {
-        return reactionService.applyReaction(actorId, feedId, key, emoji);
     }
 
     @Transactional(readOnly = true)
@@ -150,7 +147,7 @@ public class FeedService {
     }
 
     private List<Attachment> feedAttachmentsDtoToEntity(
-            List<FeedAttachmentRequest> attachments
+            List<AttachmentPayloadDto.Request> attachments
     ) {
         return attachments.stream()
                 .map(attachment -> Attachment.builder()

@@ -8,10 +8,9 @@ import org.minjulog.feedserver.domain.feed.reaction.Reaction;
 import org.minjulog.feedserver.domain.feed.reaction.ReactionRepository;
 import org.minjulog.feedserver.domain.feed.reaction.count.ReactionCountRepository;
 import org.minjulog.feedserver.domain.feed.reaction.type.ReactionType;
-import org.minjulog.feedserver.domain.feed.reaction.type.ReactionTypeRepository;
 import org.minjulog.feedserver.domain.profile.Profile;
 import org.minjulog.feedserver.domain.profile.ProfileRepository;
-import org.minjulog.feedserver.view.FeedController.*;
+import org.minjulog.feedserver.presentation.websocket.payload.ReactionPayloadDto;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -20,16 +19,13 @@ import org.springframework.stereotype.Service;
 public class ReactionService {
 
     private final ReactionTypeService reactionTypeService;
-
     private final FeedRepository feedRepository;
     private final ProfileRepository profileRepository;
-
-    private final ReactionTypeRepository reactionTypeRepository;
     private final ReactionRepository reactionRepository;
     private final ReactionCountRepository reactionCountRepository;
 
     @Transactional
-    public ReactionResponse applyReaction(Long actorId, Long feedId, String key, String emoji) {
+    public ReactionPayloadDto.Response applyReaction(Long actorId, Long feedId, String key, String emoji) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
 
@@ -69,7 +65,7 @@ public class ReactionService {
 
         int newCount = reactionCountRepository.findCount(feedId, reactionType.getId()).orElse(0);
 
-        return new ReactionResponse(
+        return new ReactionPayloadDto.Response(
                 actorId,
                 feedId,
                 reactionType.getKey(),

@@ -6,8 +6,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
-import org.minjulog.feedserver.domain.feed.Feed;
-import org.minjulog.feedserver.domain.feed.FeedRepository;
+import org.minjulog.feedserver.domain.model.Feed;
+import org.minjulog.feedserver.domain.repository.FeedRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 

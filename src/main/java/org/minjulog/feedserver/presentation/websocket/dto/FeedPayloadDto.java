@@ -4,7 +4,7 @@ import java.util.List;
 public class FeedPayloadDto {
 
     public record Request(
-            long authorId,
+            Long authorId,
             String content,
             List<AttachmentPayloadDto.Request> attachments
     ) {}

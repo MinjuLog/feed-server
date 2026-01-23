@@ -1,11 +1,11 @@
 package org.minjulog.feedserver.application;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import org.minjulog.feedserver.infra.cache.PresenceStore;
 import org.minjulog.feedserver.domain.model.Attachment;
@@ -15,6 +15,7 @@ import org.minjulog.feedserver.presentation.rest.dto.AttachmentDto;
 import org.minjulog.feedserver.presentation.rest.dto.FeedDto;
 import org.minjulog.feedserver.presentation.rest.dto.ReactionDto;
 import org.minjulog.feedserver.presentation.websocket.dto.AttachmentPayloadDto;
+import org.minjulog.feedserver.presentation.websocket.dto.FeedPayloadDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class FeedService {
 
     private final FeedRepository feedRepository;
-    private final ReactionService reactionService;
     private final ReactionCountRepository reactionCountRepository;
     private final ReactionRepository reactionRepository;
     private final AttachmentRepository attachmentRepository;
@@ -31,16 +31,33 @@ public class FeedService {
     private final PresenceStore presenceStore;
 
     @Transactional
-    public Feed saveFeed(long userId, String content, List<AttachmentPayloadDto.Request> attachments) {
+    public FeedPayloadDto.Response messagingFeed(FeedPayloadDto.Request payload) {
         Feed feed = Feed.builder()
-                .authorProfile(profileRepository.findProfileByUserId(userId))
-                .content(content)
+                .authorProfile(profileRepository.findProfileByUserId(payload.authorId()))
+                .content(payload.content())
                 .deleted(false)
                 .createdAt(LocalDateTime.now())
                 .build();
-        feedAttachmentsDtoToEntity(attachments).forEach(feed::addAttachment);
+        feedAttachmentsDtoToEntity(payload.attachments()).forEach(feed::addAttachment);
 
-        return feedRepository.saveAndFlush(feed);
+        Feed saved = feedRepository.saveAndFlush(feed);
+
+        return new FeedPayloadDto.Response(
+                saved.getFeedId(),
+                saved.getAuthorId(),
+                saved.getAuthorName(),
+                saved.getContent(),
+                saved.getCreatedAt().toString(),
+                saved.getAttachments().stream()
+                        .map(a -> new AttachmentPayloadDto.Response(
+                                a.getObjectKey(),
+                                a.getOriginalName(),
+                                a.getContentType(),
+                                a.getSize()
+                        ))
+                        .toList(),
+                new ArrayList<>()
+        );
     }
 
     @Transactional(readOnly = true)

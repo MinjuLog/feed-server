@@ -25,8 +25,14 @@ public class ReactionService {
     private final ReactionCountRepository reactionCountRepository;
 
     @Transactional
-    public ReactionPayloadDto.Response applyReaction(Long actorId, Long feedId, String key, String emoji) {
-        Feed feed = feedRepository.findById(feedId)
+    public ReactionPayloadDto.Response applyReaction(Long actorId, ReactionPayloadDto.Request payload) {
+        Long feedId = payload.feedId();
+        String key = payload.key();
+        String emoji = payload.emoji();
+        System.out.println(payload);
+
+
+        Feed feed = feedRepository.findById(payload.feedId())
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
 
         if (feed.isDeleted()) {

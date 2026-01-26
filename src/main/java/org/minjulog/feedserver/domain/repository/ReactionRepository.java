@@ -12,7 +12,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
 
     @Query("""
                 select r.feed.feedId as feedId,
-                       rt.key as reactionKey
+                       rt.reactionKey as reactionKey
                 from Reaction r
                 join r.type rt
                 where r.profile.userId = :viewerId
@@ -27,7 +27,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
         select case when count(r) > 0 then true else false end
         from Reaction r
         where r.feed.feedId = :feedId
-          and r.profile.id = :profileId
+          and r.profile.profileId = :profileId
           and r.type.id = :reactionTypeId
     """)
     boolean existsByFeedIdAndProfileIdAndReactionTypeId(
@@ -53,7 +53,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
                 select distinct r.profile.profileId
                 from Reaction r
                 where r.feed.feedId = :feedId
-                  and r.type.key = :reactionKey
+                  and r.type.reactionKey = :reactionKey
             """)
     List<Long> findProfileIdsByFeedIdAndReactionKey(
             @Param("feedId") Long feedId,

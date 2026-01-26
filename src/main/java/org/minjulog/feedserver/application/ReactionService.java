@@ -74,12 +74,13 @@ public class ReactionService {
         return new ReactionPayloadDto.Response(
                 actorId,
                 feedId,
-                reactionType.getKey(),
+                reactionType.getReactionKey()
+                ,
                 pressedByMe,
                 newCount,
                 reactionType.getEmojiType(),
                 reactionType.getEmoji(),
-                reactionType.getImageUrl()
+                reactionType.getObjectKey()
         );
     }
 

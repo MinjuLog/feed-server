@@ -12,6 +12,6 @@ public class PreSignedDto {
     ) {}
 
     public enum UploadType {
-        PROFILE, FEED
+        PROFILE, FEED, CUSTOM_EMOJI
     }
 }

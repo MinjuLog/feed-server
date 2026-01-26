@@ -14,8 +14,9 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
 
     @Query("""
                 select rc.feed.feedId as feedId,
-                       rt.key as reactionKey,
-                       rt.imageUrl as imageUrl,
+                       rt.emojiType as emojiType,
+                       rt.reactionKey as reactionKey,
+                       rt.objectKey as objectKey,
                        rt.emoji as emoji,
                        rc.count as count
                 from ReactionCount rc
@@ -28,7 +29,7 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
         Long getFeedId();
         String getReactionKey();
         EmojiType getEmojiType();
-        String getImageUrl();
+        String getObjectKey();
         String getEmoji();
         Long getCount();
     }

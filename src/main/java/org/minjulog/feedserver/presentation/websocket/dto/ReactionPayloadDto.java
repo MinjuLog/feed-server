@@ -18,6 +18,6 @@ public class ReactionPayloadDto {
             int count,
             EmojiType emojiType,
             String emoji,
-            String imageUrl
+            String objectKey
     ) {}
 }

@@ -27,7 +27,7 @@ public class ReactionType {
     private Long workspaceId;
 
     @Column(name = "reaction_key", nullable = false, length = 64)
-    private String key; // 예: ":party_parrot:" 또는 "party_parrot"
+    private String reactionKey; // 예: ":party_parrot:" 또는 "party_parrot"
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
@@ -36,8 +36,7 @@ public class ReactionType {
     @Column(length = 32)
     private String emoji;
 
-    // IMAGE일 때 사용 (MinIO/S3 URL 또는 objectKey)
     @Column(length = 512)
-    private String imageUrl;
+    private String objectKey;
 
 }

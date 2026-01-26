@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.infra.cache.PresenceStore;
 import org.minjulog.feedserver.domain.model.Attachment;
 import org.minjulog.feedserver.domain.model.Feed;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FeedService {
 
     private final FeedRepository feedRepository;
@@ -100,7 +101,7 @@ public class FeedService {
                                             return new ReactionDto.Response(
                                                     row.getReactionKey(),
                                                     row.getEmojiType(),
-                                                    row.getImageUrl(),
+                                                    row.getObjectKey(),
                                                     row.getEmoji(),
                                                     row.getCount(),
                                                     pressedByMe

@@ -6,13 +6,13 @@ public class AttachmentPayloadDto {
             String objectKey,
             String originalName,
             String contentType,
-            long size
+            Long size
     ) {}
 
     public record Response(
             String objectKey,
             String originalName,
             String contentType,
-            long size
+            Long size
     ) {}
 }

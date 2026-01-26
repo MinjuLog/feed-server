@@ -169,6 +169,7 @@ public class FeedService {
                         .objectKey(attachment.objectKey())
                         .originalName(attachment.originalName())
                         .contentType(attachment.contentType())
+                        .size(attachment.size())
                         .build()
                 )
                 .toList();

@@ -29,8 +29,8 @@ public class FeedRestController {
 
     @GetMapping("/api/feeds/{feedId}/reactions/{reactionKey}/users")
     public ReactionDto.PressedUsersResponse sendReactionPressedUsers(
-            @PathVariable Long feedId,
-            @PathVariable String reactionKey,
+            @PathVariable("feedId") Long feedId,
+            @PathVariable("reactionKey") String reactionKey,
             @RequestHeader("X-User-Id") Long userId
     ) {
         return new ReactionDto.PressedUsersResponse(feedService.findReactionPressedUsers(feedId, userId, reactionKey));

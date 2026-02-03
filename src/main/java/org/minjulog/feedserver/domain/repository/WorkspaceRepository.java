@@ -10,7 +10,7 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
-            update worksapce
+            update workspace
             set like_count = like_count + :delta
             where id = :workspaceId
           """, nativeQuery = true)

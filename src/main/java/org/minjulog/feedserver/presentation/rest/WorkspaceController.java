@@ -12,17 +12,22 @@ public class WorkspaceController {
 
     private final WorkspaceService workspaceService;
 
-    @PatchMapping("/workspaces/{workspaceId}/likes")
+    @GetMapping("/api/workspaces/{workspaceId}")
+    public ResponseEntity<WorkspaceDto.WorkspaceResponse> getWorkspace(
+            @PathVariable Long workspaceId
+    ) {
+        return ResponseEntity.ok(workspaceService.getWorkspace(workspaceId));
+    }
+
+    @PatchMapping("/api/workspaces/{workspaceId}/like-count")
     public ResponseEntity<WorkspaceDto.IncrementLikeResponse> incrementLikeCount(
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long workspaceId,
             @RequestBody WorkspaceDto.IncrementLikeRequest request
     ) {
-        Long delta = request.delta();
-        Long likeCount = workspaceService.incrementLike(workspaceId, delta);
 
         return ResponseEntity.ok(
-                new WorkspaceDto.IncrementLikeResponse(workspaceId, likeCount)
+                workspaceService.incrementLike(userId, workspaceId, request.delta())
         );
     }
 }

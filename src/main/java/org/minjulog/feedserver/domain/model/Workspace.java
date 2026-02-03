@@ -16,13 +16,16 @@ public class Workspace {
     private Long id;
 
     @Column(name="like_count", nullable = false)
-    private Long likeCount;
+    private Long likeCount = 0L;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
+        if (this.likeCount == null) {
+            this.likeCount = 0L;
+        }
         this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 }

@@ -1,9 +1,10 @@
 package org.minjulog.feedserver.domain.repository;
 
-import java.util.List;
-
 import org.minjulog.feedserver.domain.model.Feed;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 public interface FeedRepository extends JpaRepository<Feed, Long> {
 

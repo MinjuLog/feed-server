@@ -1,18 +1,16 @@
 package org.minjulog.feedserver.presentation.rest;
 
-import io.minio.*;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.FeedService;
 import org.minjulog.feedserver.presentation.rest.dto.FeedDto;
-import org.minjulog.feedserver.presentation.rest.dto.PreSignedDto;
 import org.minjulog.feedserver.presentation.rest.dto.ReactionDto;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor

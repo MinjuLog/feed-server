@@ -1,8 +1,9 @@
 package org.minjulog.feedserver.infra.messaging;
 
-import java.security.Principal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.security.Principal;
 
 @AllArgsConstructor
 @Getter

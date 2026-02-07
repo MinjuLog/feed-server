@@ -32,15 +32,15 @@ pipeline {
         stage('원격 서버 배포') {
             steps {
                 sshagent(credentials: ['UROI_SSH_KEY']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no $REMOTE "
-                            set -e
-                            cd $DEPLOY_DIR
-                            sudo docker compose --env-file .env down
-                            sudo docker compose --env-file .env pull
-                            sudo docker compose --env-file .env up -d
-                        "
-                    '''
+                  sh '''
+                    ssh -o StrictHostKeyChecking=no uroi@155.248.211.226 << 'EOF'
+                      set -e
+                      cd /home/uroi/minjulog
+                      sudo docker compose --env-file .env down
+                      sudo docker compose --env-file .env pull
+                      sudo docker compose --env-file .env up -d
+                    EOF
+                  '''
                 }
             }
         }

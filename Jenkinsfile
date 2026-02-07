@@ -40,7 +40,6 @@ pipeline {
         sudo docker compose --env-file .env down
         sudo docker compose --env-file .env pull
         sudo docker compose --env-file .env up -d --remove-orphans
-        EOF
               '''
             }
           }

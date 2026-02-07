@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE = "jeongseho1/minjulog-feed:latest"
-        REMOTE = "ubuntu@155.248.211.226"
+        REMOTE = "uroi@155.248.211.226"
         DEPLOY_DIR = "/home/uroi/minjulog"
     }
 

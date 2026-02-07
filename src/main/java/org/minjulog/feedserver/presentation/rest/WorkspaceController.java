@@ -14,7 +14,7 @@ public class WorkspaceController {
 
     @GetMapping("/api/workspaces/{workspaceId}")
     public ResponseEntity<WorkspaceDto.WorkspaceResponse> getWorkspace(
-            @PathVariable Long workspaceId
+            @PathVariable("workspaceId") Long workspaceId
     ) {
         return ResponseEntity.ok(workspaceService.getWorkspace(workspaceId));
     }
@@ -22,7 +22,7 @@ public class WorkspaceController {
     @PatchMapping("/api/workspaces/{workspaceId}/like-count")
     public ResponseEntity<WorkspaceDto.IncrementLikeResponse> incrementLikeCount(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable Long workspaceId,
+            @PathVariable("workspaceId") Long workspaceId,
             @RequestBody WorkspaceDto.IncrementLikeRequest request
     ) {
 

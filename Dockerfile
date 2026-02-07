@@ -6,7 +6,7 @@ COPY gradle gradle
 COPY build.gradle settings.gradle ./
 COPY src src
 RUN chmod +x ./gradlew
-RUN ./gradlew clean bootJar -x test
+RUN ./gradlew bootJar -x test
 
 # 2) Run stage
 FROM eclipse-temurin:21-jre-alpine

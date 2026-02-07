@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/minjulog_feed?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:jsh123789}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+        show_sql: ${HIBERNATE_SHOW_SQL:false}
+    open-in-view: false
+
+env:
+  MINIO:
+    END_POINT: ${MINIO_ENDPOINT:http://localhost:9000}
+    ACCESS_KEY: ${MINIO_ACCESS_KEY:access-key}
+    SECRET_KEY: ${MINIO_SECRET_KEY:secret-key}
+    BUCKET_NAME: ${MINIO_BUCKET_NAME:minjulog}
+    EXTERNAL_BASE: ${MINIO_EXTERNAL_BASE:http://localhost:1107/minjulog-static}
+
+logging:
+  level:
+    org.hibernate.SQL: ${LOG_HIBERNATE_SQL:debug}
+    org.hibernate.orm.jdbc.bind: ${LOG_HIBERNATE_BIND:trace}
+    org.springframework.web.socket: ${LOG_WS:DEBUG}
+    org.springframework.messaging: ${LOG_MESSAGING:DEBUG}
+    org.springframework.messaging.simp.stomp: ${LOG_STOMP:DEBUG}

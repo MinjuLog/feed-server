@@ -31,7 +31,7 @@ pipeline {
 
         stage('원격 서버 배포') {
             steps {
-                sshagent(credentials: ['407c0ea1-1194-4188-9c3d-d7f6196497dd']) {
+                sshagent(credentials: ['UROI_SSH_KEY']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no $REMOTE "
                             set -e

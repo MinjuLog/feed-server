@@ -1,12 +1,20 @@
 # 1) Build stage
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
+
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
-COPY src src
 RUN chmod +x ./gradlew
-RUN ./gradlew bootJar -x test
+
+# 의존성/gradle 캐시 재사용
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew dependencies
+
+COPY src src
+
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew bootJar -x test
 
 # 2) Run stage
 FROM eclipse-temurin:21-jre-alpine

@@ -158,6 +158,23 @@ public class FeedService {
         return profileRepository.findUsernamesByProfileIdIn(profileIds);
     }
 
+    @Transactional
+    public Boolean deleteFeed(Long userId, Long feedId) {
+        Feed feed = feedRepository.findById(feedId)
+                .orElseThrow(() -> new IllegalArgumentException("feed not found"));
+
+        if (feed.isDeleted()) {
+            return true;
+        }
+
+        if (!feed.getAuthorId().equals(userId)) {
+            throw new IllegalStateException("not author");
+        }
+
+        feed.delete();
+        return true;
+    }
+
     public Set<String> findAllOnlineUsers() {
         return presenceStore.getOnlineUsers();
     }

@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.FeedService;
 import org.minjulog.feedserver.presentation.rest.dto.FeedDto;
 import org.minjulog.feedserver.presentation.rest.dto.ReactionDto;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -19,19 +17,32 @@ public class FeedRestController {
     private final FeedService feedService;
 
     @GetMapping("/api/feeds")
-    public List<FeedDto.Response> findAllFeeds(
+    public ResponseEntity<List<FeedDto.Response>> findAllFeeds(
             @RequestHeader("X-User-Id") Long userId
     ) {
-        return feedService.findAllFeeds(userId);
+        return ResponseEntity.ok(feedService.findAllFeeds(userId));
     }
 
     @GetMapping("/api/feeds/{feedId}/reactions/{reactionKey}/users")
-    public ReactionDto.PressedUsersResponse sendReactionPressedUsers(
+    public ResponseEntity<ReactionDto.PressedUsersResponse> sendReactionPressedUsers(
             @PathVariable("feedId") Long feedId,
             @PathVariable("reactionKey") String reactionKey,
             @RequestHeader("X-User-Id") Long userId
     ) {
-        return new ReactionDto.PressedUsersResponse(feedService.findReactionPressedUsers(feedId, userId, reactionKey));
+        return ResponseEntity.ok(
+                new ReactionDto.PressedUsersResponse(
+                        feedService.findReactionPressedUsers(
+                                feedId, userId, reactionKey)
+                )
+        );
+    }
+
+    @DeleteMapping("/api/feeds/{feedId}")
+    public ResponseEntity<Boolean> deleteFeed(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable("feedId") Long feedId
+    ) {
+        return ResponseEntity.ok(feedService.deleteFeed(userId, feedId));
     }
 
 

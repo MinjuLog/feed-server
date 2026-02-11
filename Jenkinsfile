@@ -18,7 +18,7 @@ pipeline {
             steps {
                 withCredentials([
                   usernamePassword(
-                    credentialsId: 'uroi_docker',
+                    credentialsId: 'UROI_DOCKER',
                     usernameVariable: 'DOCKER_ID',
                     passwordVariable: 'DOCKER_PW'
                   )

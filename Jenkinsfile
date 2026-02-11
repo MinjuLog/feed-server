@@ -17,12 +17,15 @@ pipeline {
         stage('도커 이미지 푸시') {
             steps {
                 withCredentials([
-                  string(credentialsId: 'UROI_DOCKER_USERNAME', variable: 'DOCKER_ID'),
-                  string(credentialsId: 'UROI_DOCKER_PASSWORD', variable: 'DOCKER_PW')
+                  usernamePassword(
+                    credentialsId: 'uroi_docker',
+                    usernameVariable: 'DOCKER_ID',
+                    passwordVariable: 'DOCKER_PW'
+                  )
                 ]) {
                   sh '''
                     echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
-                    docker push jeongseho1/minjulog-feed:latest
+                    docker push $IMAGE
                     docker logout
                   '''
                 }
@@ -35,11 +38,11 @@ pipeline {
               sh '''
                 set -e
                 ssh -o StrictHostKeyChecking=no uroi@155.248.211.226 <<'EOF'
-        set -e
-        cd /home/uroi/minjulog
-        sudo docker compose --env-file .env down
-        sudo docker compose --env-file .env pull
-        sudo docker compose --env-file .env up -d --remove-orphans
+                set -e
+                cd /home/uroi/minjulog
+                sudo docker compose --env-file .env down
+                sudo docker compose --env-file .env pull
+                sudo docker compose --env-file .env up -d --remove-orphans
               '''
             }
           }

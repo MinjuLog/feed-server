@@ -38,6 +38,6 @@ public class ReactionCount {
     private ReactionType reactionType;
 
     @Column(nullable = false)
-    private int count;
+    private Long count;
 }
 

@@ -1,6 +1,5 @@
 package org.minjulog.feedserver.application;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.domain.model.Feed;
 import org.minjulog.feedserver.domain.model.Profile;
@@ -13,6 +12,7 @@ import org.minjulog.feedserver.domain.repository.ReactionRepository;
 import org.minjulog.feedserver.presentation.websocket.dto.ReactionPayloadDto;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +29,8 @@ public class ReactionService {
         Long feedId = payload.feedId();
         String key = payload.key();
         String emoji = payload.emoji();
-        System.out.println(payload);
 
-
-        Feed feed = feedRepository.findById(payload.feedId())
+        Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
 
         if (feed.isDeleted()) {
@@ -44,15 +42,12 @@ public class ReactionService {
         ReactionType reactionType =
                 reactionTypeService.getOrCreateDefaultEmoji(key, emoji);
 
-
-        // 토글
         boolean pressedByMe;
         if (reactionRepository.existsByFeedIdAndProfileIdAndReactionTypeId(feedId, actor.getProfileId(), reactionType.getId())) {
             reactionRepository.deleteByFeedIdAndProfileIdAndReactionTypeId(feedId, actor.getProfileId(), reactionType.getId());
             reactionCountRepository.decrementOrDelete(feedId, reactionType.getId());
             pressedByMe = false;
         } else {
-            // 동시성에서 중복 insert는 unique로 막히고, 여기서 예외 처리로 흡수 가능
             try {
                 reactionRepository.save(
                         Reaction.builder()
@@ -64,18 +59,16 @@ public class ReactionService {
                 reactionCountRepository.increment(feedId, reactionType.getId());
                 pressedByMe = true;
             } catch (DataIntegrityViolationException e) {
-                // 거의 동시에 눌러서 이미 들어간 경우
                 pressedByMe = true;
             }
         }
 
-        int newCount = reactionCountRepository.findCount(feedId, reactionType.getId()).orElse(0);
+        long newCount = reactionCountRepository.findCount(feedId, reactionType.getId()).orElse(0L);
 
         return new ReactionPayloadDto.Response(
                 actorId,
                 feedId,
-                reactionType.getReactionKey()
-                ,
+                reactionType.getReactionKey(),
                 pressedByMe,
                 newCount,
                 reactionType.getEmojiType(),
@@ -83,7 +76,4 @@ public class ReactionService {
                 reactionType.getObjectKey()
         );
     }
-
-
 }
-

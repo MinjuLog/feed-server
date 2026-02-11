@@ -3,7 +3,10 @@ package org.minjulog.feedserver.application;
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.domain.model.Attachment;
 import org.minjulog.feedserver.domain.model.Feed;
-import org.minjulog.feedserver.domain.repository.*;
+import org.minjulog.feedserver.domain.repository.FeedRepository;
+import org.minjulog.feedserver.domain.repository.ProfileRepository;
+import org.minjulog.feedserver.domain.repository.ReactionCountRepository;
+import org.minjulog.feedserver.domain.repository.ReactionRepository;
 import org.minjulog.feedserver.infra.cache.PresenceStore;
 import org.minjulog.feedserver.presentation.rest.dto.AttachmentDto;
 import org.minjulog.feedserver.presentation.rest.dto.FeedDto;
@@ -13,7 +16,6 @@ import org.minjulog.feedserver.presentation.websocket.dto.FeedPayloadDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,6 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final ReactionCountRepository reactionCountRepository;
     private final ReactionRepository reactionRepository;
-    private final AttachmentRepository attachmentRepository;
     private final ProfileRepository profileRepository;
     private final PresenceStore presenceStore;
 
@@ -36,12 +37,10 @@ public class FeedService {
         Feed feed = Feed.builder()
                 .authorProfile(profileRepository.findProfileByUserId(payload.authorId()))
                 .content(payload.content())
-                .deleted(false)
-                .createdAt(LocalDateTime.now())
                 .build();
         feedAttachmentsDtoToEntity(payload.attachments()).forEach(feed::addAttachment);
 
-        Feed saved = feedRepository.saveAndFlush(feed);
+        Feed saved = feedRepository.save(feed);
 
         return new FeedPayloadDto.Response(
                 saved.getFeedId(),
@@ -80,7 +79,6 @@ public class FeedService {
                                 )
                         ));
 
-
         List<ReactionCountRepository.ReactionCountRow> reactionCountRows =
                 reactionCountRepository.findReactionCountsByFeedIds(feedIds);
 
@@ -111,27 +109,18 @@ public class FeedService {
                                 )
                         ));
 
-        // 3) 첨부 (feedId -> List<AttachmentResponse>)
-        List<Attachment> attachments = attachmentRepository.findByFeedIds(feedIds);
-
-        Map<Long, List<AttachmentDto.Response>> attachmentsByFeedId = attachments.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        a -> a.getFeed().getFeedId(),
-                        java.util.stream.Collectors.mapping(a ->
-                                        new AttachmentDto.Response(
-                                                a.getObjectKey(),
-                                                a.getOriginalName(),
-                                                a.getContentType(),
-                                                a.getSize()
-                                        ),
-                                java.util.stream.Collectors.toList()
-                        )
-                ));
-
-        // 4) 최종 DTO 조립
         return feeds.stream()
                 .map(f -> {
                     long feedId = f.getFeedId();
+
+                    List<AttachmentDto.Response> attachmentDtos = f.getAttachments().stream()
+                            .map(a -> new AttachmentDto.Response(
+                                    a.getObjectKey(),
+                                    a.getOriginalName(),
+                                    a.getContentType(),
+                                    a.getSize()
+                            ))
+                            .toList();
 
                     return new FeedDto.Response(
                             feedId,
@@ -139,7 +128,7 @@ public class FeedService {
                             f.getAuthorProfile().getUsername(),
                             f.getContent(),
                             f.getCreatedAt().toString(),
-                            attachmentsByFeedId.getOrDefault(feedId, List.of()),
+                            attachmentDtos,
                             reactionsByFeedId.getOrDefault(feedId, List.of())
                     );
                 })
@@ -148,13 +137,10 @@ public class FeedService {
 
     @Transactional(readOnly = true)
     public Set<String> findReactionPressedUsers(Long feedId, Long userId, String reactionKey) {
-        // 1) reaction에서 profileId만 조회 (중복 제거)
         List<Long> profileIds = reactionRepository.findProfileIdsByFeedIdAndReactionKey(feedId, reactionKey);
 
         if (profileIds.isEmpty()) return Set.of();
 
-        // 2) profileId들로 username 한 번에 조회
-        // (정렬이 필요하면 아래 repository에서 ORDER BY를 걸거나, profileIds 순서대로 매핑)
         return profileRepository.findUsernamesByProfileIdIn(profileIds);
     }
 
@@ -182,6 +168,7 @@ public class FeedService {
     private List<Attachment> feedAttachmentsDtoToEntity(
             List<AttachmentPayloadDto.Request> attachments
     ) {
+        if (attachments == null || attachments.isEmpty()) return List.of();
         return attachments.stream()
                 .map(attachment -> Attachment.builder()
                         .objectKey(attachment.objectKey())

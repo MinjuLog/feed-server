@@ -15,7 +15,7 @@ public class ReactionPayloadDto {
             Long feedId,
             String key,
             boolean pressedByMe,
-            int count,
+            long count,
             EmojiType emojiType,
             String emoji,
             String objectKey

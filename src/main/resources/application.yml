@@ -21,6 +21,8 @@ env:
     SECRET_KEY: ${MINIO_SECRET_KEY:secret-key}
     BUCKET_NAME: ${MINIO_BUCKET_NAME:minjulog}
     EXTERNAL_BASE: ${MINIO_EXTERNAL_BASE:http://localhost:1107/minjulog-static}
+  REACTION:
+    WORKSPACE_ID: ${REACTION_WORKSPACE_ID:1}
 
 logging:
   level:

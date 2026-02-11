@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-@Entity @Table(name = "profile")
-@Getter @Builder
-@NoArgsConstructor @AllArgsConstructor
+@Entity
+@Table(name = "profile")
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Profile {
 
     private static final List<String> ADJECTIVES = List.of(
@@ -54,7 +57,7 @@ public class Profile {
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reaction> reactions = new ArrayList<>();
 
-    public Profile (long userId) {
+    public Profile(long userId) {
         this.userId = userId;
         this.username = randomName();
     }

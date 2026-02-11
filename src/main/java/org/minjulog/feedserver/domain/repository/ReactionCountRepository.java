@@ -71,5 +71,5 @@ public interface ReactionCountRepository extends JpaRepository<ReactionCount, Lo
                           and reaction_type_id = :reactionTypeId
                         limit 1
                     """, nativeQuery = true)
-    Optional<Integer> findCount(@Param("feedId") Long feedId, @Param("reactionTypeId") Long reactionTypeId);
+    Optional<Long> findCount(@Param("feedId") Long feedId, @Param("reactionTypeId") Long reactionTypeId);
 }

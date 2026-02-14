@@ -7,61 +7,62 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface ReactionRepository extends JpaRepository<Reaction, Long> {
+public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
 
     @Query("""
-                select r.feed.feedId as feedId,
-                       rt.reactionKey as reactionKey
+                select r.feed.id as feedId,
+                       e.emojiKey as emojiKey
                 from Reaction r
-                join r.type rt
-                where r.profile.userId = :viewerId
-                  and r.feed.feedId in :feedIds
+                join r.emoji e
+                where r.userProfile.userId = :viewerId
+                  and r.feed.id in :feedIds
             """)
     List<MyReactionRow> findMyReactions(
-            @Param("viewerId") long viewerId,
-            @Param("feedIds") List<Long> feedIds
+            @Param("viewerId") Long viewerId,
+            @Param("feedIds") List<UUID> feedIds
     );
 
     @Query("""
         select case when count(r) > 0 then true else false end
         from Reaction r
-        where r.feed.feedId = :feedId
-          and r.profile.profileId = :profileId
-          and r.type.id = :reactionTypeId
+        where r.feed.id = :feedId
+          and r.userProfile.id = :userProfileId
+          and r.emoji.id = :emojiId
     """)
-    boolean existsByFeedIdAndProfileIdAndReactionTypeId(
-            @Param("feedId") Long feedId,
-            @Param("profileId") Long profileId,
-            @Param("reactionTypeId") Long reactionTypeId
+    boolean existsByFeedIdAndUserProfileIdAndEmojiId(
+            @Param("feedId") UUID feedId,
+            @Param("userProfileId") UUID userProfileId,
+            @Param("emojiId") UUID emojiId
     );
 
     @Modifying
     @Query("""
         delete from Reaction r
-        where r.feed.feedId = :feedId
-          and r.profile.profileId = :profileId
-          and r.type.id = :reactionTypeId
+        where r.feed.id = :feedId
+          and r.userProfile.id = :userProfileId
+          and r.emoji.id = :emojiId
     """)
-    Long deleteByFeedIdAndProfileIdAndReactionTypeId(
-            @Param("feedId") Long feedId,
-            @Param("profileId") Long profileId,
-            @Param("reactionTypeId") Long reactionTypeId
+    long deleteByFeedIdAndUserProfileIdAndEmojiId(
+            @Param("feedId") UUID feedId,
+            @Param("userProfileId") UUID userProfileId,
+            @Param("emojiId") UUID emojiId
     );
 
     @Query("""
-                select distinct r.profile.profileId
+                select distinct r.userProfile.id
                 from Reaction r
-                where r.feed.feedId = :feedId
-                  and r.type.reactionKey = :reactionKey
+                where r.feed.id = :feedId
+                  and r.emoji.emojiKey = :emojiKey
             """)
-    List<Long> findProfileIdsByFeedIdAndReactionKey(
-            @Param("feedId") Long feedId,
-            @Param("reactionKey") String reactionKey
+    List<UUID> findUserProfileIdsByFeedIdAndEmojiKey(
+            @Param("feedId") UUID feedId,
+            @Param("emojiKey") String emojiKey
     );
 
-    public interface MyReactionRow {
-        Long getFeedId();
-        String getReactionKey();
+    interface MyReactionRow {
+        UUID getFeedId();
+        String getEmojiKey();
     }
 }

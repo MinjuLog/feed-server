@@ -1,18 +1,19 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
+import org.minjulog.feedserver.domain.model.Emoji;
 import org.minjulog.feedserver.domain.model.Feed;
-import org.minjulog.feedserver.domain.model.Profile;
 import org.minjulog.feedserver.domain.model.Reaction;
-import org.minjulog.feedserver.domain.model.ReactionType;
+import org.minjulog.feedserver.domain.model.UserProfile;
+import org.minjulog.feedserver.domain.repository.EmojiCountRepository;
 import org.minjulog.feedserver.domain.repository.FeedRepository;
-import org.minjulog.feedserver.domain.repository.ProfileRepository;
-import org.minjulog.feedserver.domain.repository.ReactionCountRepository;
 import org.minjulog.feedserver.domain.repository.ReactionRepository;
+import org.minjulog.feedserver.domain.repository.UserProfileRepository;
 import org.minjulog.feedserver.presentation.websocket.dto.ReactionPayloadDto;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,15 +21,15 @@ public class ReactionService {
 
     private final ReactionTypeService reactionTypeService;
     private final FeedRepository feedRepository;
-    private final ProfileRepository profileRepository;
+    private final UserProfileRepository userProfileRepository;
     private final ReactionRepository reactionRepository;
-    private final ReactionCountRepository reactionCountRepository;
+    private final EmojiCountRepository emojiCountRepository;
 
     @Transactional
     public ReactionPayloadDto.Response applyReaction(Long actorId, ReactionPayloadDto.Request payload) {
-        Long feedId = payload.feedId();
-        String key = payload.key();
-        String emoji = payload.emoji();
+        UUID feedId = payload.feedId();
+        String emojiKey = payload.emojiKey();
+        String unicode = payload.unicode();
 
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
@@ -37,43 +38,39 @@ public class ReactionService {
             throw new IllegalStateException("deleted feed");
         }
 
-        Profile actor = profileRepository.findProfileByUserId(actorId);
+        UserProfile actor = userProfileRepository.findByUserId(actorId)
+                .orElseGet(() -> userProfileRepository.saveAndFlush(new UserProfile(actorId)));
 
-        ReactionType reactionType =
-                reactionTypeService.getOrCreateDefaultEmoji(key, emoji);
+        Emoji emoji = reactionTypeService.getOrCreateDefaultEmoji(feed.getWorkspace().getId(), emojiKey, unicode);
 
         boolean pressedByMe;
-        if (reactionRepository.existsByFeedIdAndProfileIdAndReactionTypeId(feedId, actor.getProfileId(), reactionType.getId())) {
-            reactionRepository.deleteByFeedIdAndProfileIdAndReactionTypeId(feedId, actor.getProfileId(), reactionType.getId());
-            reactionCountRepository.decrementOrDelete(feedId, reactionType.getId());
+        if (reactionRepository.existsByFeedIdAndUserProfileIdAndEmojiId(feedId, actor.getId(), emoji.getId())) {
+            reactionRepository.deleteByFeedIdAndUserProfileIdAndEmojiId(feedId, actor.getId(), emoji.getId());
+            emojiCountRepository.decrementOrDelete(feedId, emoji.getId());
             pressedByMe = false;
         } else {
-            try {
-                reactionRepository.save(
-                        Reaction.builder()
-                                .feed(feed)
-                                .profile(actor)
-                                .type(reactionType)
-                                .build()
-                );
-                reactionCountRepository.increment(feedId, reactionType.getId());
-                pressedByMe = true;
-            } catch (DataIntegrityViolationException e) {
-                pressedByMe = true;
-            }
+            reactionRepository.save(
+                    Reaction.builder()
+                            .feed(feed)
+                            .userProfile(actor)
+                            .emoji(emoji)
+                            .build()
+            );
+            emojiCountRepository.increment(feedId, emoji.getId());
+            pressedByMe = true;
         }
 
-        long newCount = reactionCountRepository.findCount(feedId, reactionType.getId()).orElse(0L);
+        long newCount = emojiCountRepository.findCount(feedId, emoji.getId()).orElse(0L);
 
         return new ReactionPayloadDto.Response(
                 actorId,
                 feedId,
-                reactionType.getReactionKey(),
+                emoji.getEmojiKey(),
                 pressedByMe,
                 newCount,
-                reactionType.getEmojiType(),
-                reactionType.getEmoji(),
-                reactionType.getObjectKey()
+                emoji.getEmojiType(),
+                emoji.getUnicode(),
+                emoji.getObjectKey()
         );
     }
 }

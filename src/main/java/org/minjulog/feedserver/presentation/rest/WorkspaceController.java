@@ -25,7 +25,6 @@ public class WorkspaceController {
             @PathVariable("workspaceId") Long workspaceId,
             @RequestBody WorkspaceDto.IncrementLikeRequest request
     ) {
-
         return ResponseEntity.ok(
                 workspaceService.incrementLike(userId, workspaceId, request.delta())
         );

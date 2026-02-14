@@ -1,12 +1,13 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.EmojiType;
-import org.minjulog.feedserver.domain.model.ReactionType;
-import org.minjulog.feedserver.domain.repository.ReactionTypeRepository;
+import org.minjulog.feedserver.domain.model.Emoji;
+import org.minjulog.feedserver.domain.model.Workspace;
+import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.repository.EmojiRepository;
+import org.minjulog.feedserver.domain.repository.WorkspaceRepository;
 import org.minjulog.feedserver.presentation.rest.dto.ReactionDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,57 +15,58 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReactionTypeService {
 
-    private final ReactionTypeRepository reactionTypeRepository;
+    private final EmojiRepository emojiRepository;
+    private final WorkspaceRepository workspaceRepository;
 
     @Value("${env.REACTION.WORKSPACE_ID:1}")
-    private Long workspaceId;
+    private Long defaultWorkspaceId;
 
     @Transactional
-    public ReactionType getOrCreateDefaultEmoji(String reactionKey, String unicodeEmoji) {
-        return reactionTypeRepository.findByReactionKey(reactionKey)
-                .orElseGet(() -> {
-                    try {
-                        return reactionTypeRepository.save(
-                                ReactionType.builder()
-                                        .workspaceId(workspaceId)
-                                        .reactionKey(reactionKey)
-                                        .emojiType(EmojiType.DEFAULT)
-                                        .emoji(unicodeEmoji)
-                                        .build()
-                        );
-                    } catch (DataIntegrityViolationException e) {
-                        return reactionTypeRepository.findByReactionKey(reactionKey)
-                                .orElseThrow(() -> e);
-                    }
-                });
+    public Emoji getOrCreateDefaultEmoji(Long workspaceId, String emojiKey, String unicodeEmoji) {
+        return emojiRepository.findByWorkspaceIdAndEmojiKey(workspaceId, emojiKey)
+                .orElseGet(() -> emojiRepository.save(
+                        Emoji.builder()
+                                .workspace(getOrCreateWorkspace(workspaceId))
+                                .emojiKey(emojiKey)
+                                .emojiType(EmojiType.DEFAULT)
+                                .unicode(unicodeEmoji)
+                                .build()
+                ));
     }
 
     @Transactional
-    public ReactionDto.CustomEmojiResponse createCustomEmoji(String reactionKey, String objectKey) {
-        ReactionType reactionType = ReactionType.builder()
-                .workspaceId(workspaceId)
-                .reactionKey(reactionKey)
+    public ReactionDto.CustomEmojiResponse createCustomEmoji(String emojiKey, String objectKey) {
+        Workspace workspace = getOrCreateWorkspace(defaultWorkspaceId);
+
+        Emoji emoji = Emoji.builder()
+                .workspace(workspace)
+                .emojiKey(emojiKey)
                 .emojiType(EmojiType.CUSTOM)
                 .objectKey(objectKey)
                 .build();
 
-        ReactionType saved = reactionTypeRepository.saveAndFlush(reactionType);
+        Emoji saved = emojiRepository.saveAndFlush(emoji);
 
-        return new ReactionDto.CustomEmojiResponse(saved.getReactionKey(), saved.getObjectKey());
+        return new ReactionDto.CustomEmojiResponse(saved.getEmojiKey(), saved.getObjectKey());
     }
 
     @Transactional(readOnly = true)
     public ReactionDto.CustomEmojisResponse getCustomEmojis() {
         return new ReactionDto.CustomEmojisResponse(
-                reactionTypeRepository
-                        .findByEmojiType(EmojiType.CUSTOM)
+                emojiRepository
+                        .findByWorkspaceIdAndEmojiType(defaultWorkspaceId, EmojiType.CUSTOM)
                         .stream()
-                        .map(
-                                a -> new ReactionDto.CustomEmojiResponse(
-                                        a.getReactionKey(),
-                                        a.getObjectKey()
-                                ))
+                        .map(a -> new ReactionDto.CustomEmojiResponse(a.getEmojiKey(), a.getObjectKey()))
                         .toList()
         );
+    }
+
+    private Workspace getOrCreateWorkspace(Long workspaceId) {
+        return workspaceRepository.findById(workspaceId)
+                .orElseGet(() -> workspaceRepository.saveAndFlush(
+                        Workspace.builder()
+                                .likeCount(0L)
+                                .build()
+                ));
     }
 }

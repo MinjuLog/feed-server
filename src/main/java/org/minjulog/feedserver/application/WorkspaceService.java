@@ -16,9 +16,8 @@ public class WorkspaceService {
 
     @Transactional(readOnly = true)
     public WorkspaceDto.WorkspaceResponse getWorkspace(Long workspaceId) {
-        Workspace workspace =
-                workspaceRepository.findById(workspaceId)
-                        .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
 
         return new WorkspaceDto.WorkspaceResponse(workspace.getLikeCount());
     }
@@ -26,9 +25,8 @@ public class WorkspaceService {
     @Transactional
     public WorkspaceDto.IncrementLikeResponse incrementLike(Long actorId, Long workspaceId, Long delta) {
         workspaceRepository.addLikeCount(workspaceId, delta);
-        Workspace workspace =
-                workspaceRepository.findById(workspaceId)
-                        .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new EntityNotFoundException("Workspace not found"));
         return new WorkspaceDto.IncrementLikeResponse(actorId, workspaceId, workspace.getLikeCount());
     }
 }

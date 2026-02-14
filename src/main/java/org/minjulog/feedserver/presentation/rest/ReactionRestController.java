@@ -21,6 +21,6 @@ public class ReactionRestController {
 
     @PostMapping("/api/custom-emojis")
     public ReactionDto.CustomEmojiResponse addCustomEmoji(@RequestBody ReactionDto.CreateCustomEmojiRequest req) {
-        return reactionTypeService.createCustomEmoji(req.reactionKey(), req.objectKey());
+        return reactionTypeService.createCustomEmoji(req.emojiKey(), req.objectKey());
     }
 }

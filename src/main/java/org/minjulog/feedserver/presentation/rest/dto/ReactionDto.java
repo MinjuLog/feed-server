@@ -1,35 +1,40 @@
 package org.minjulog.feedserver.presentation.rest.dto;
-import org.minjulog.feedserver.domain.model.EmojiType;
+
+import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
 
 import java.util.List;
 import java.util.Set;
 
 public class ReactionDto {
     public record Response(
-            String reactionKey,
+            String emojiKey,
             EmojiType emojiType,
             String objectKey,
-            String emoji,
-            Long count,
+            String unicode,
+            Long emojiCount,
             boolean pressedByMe
-    ) {}
+    ) {
+    }
 
     public record PressedUsersResponse(
             Set<String> usernames
-    ) {}
+    ) {
+    }
 
     public record CustomEmojisResponse(
             List<CustomEmojiResponse> customEmojis
-    ) {}
+    ) {
+    }
 
     public record CustomEmojiResponse(
-            String reactionKey,
+            String emojiKey,
             String objectKey
-    ) {}
+    ) {
+    }
 
     public record CreateCustomEmojiRequest(
             String objectKey,
-            String reactionKey
-//            Long workspaceId
-    ) {}
+            String emojiKey
+    ) {
+    }
 }

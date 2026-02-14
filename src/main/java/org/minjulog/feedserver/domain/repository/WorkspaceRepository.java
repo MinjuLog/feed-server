@@ -15,4 +15,4 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
             where id = :workspaceId
           """, nativeQuery = true)
     Long addLikeCount(@Param("workspaceId") Long workspaceId, @Param("delta") Long delta);
- }
+}

@@ -5,21 +5,36 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@NoArgsConstructor @AllArgsConstructor
-@Builder @Getter @Setter
+@Table(name = "workspace")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Getter
+@Setter
 public class Workspace {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="like_count", nullable = false)
+    @Builder.Default
+    @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "workspace")
+    private List<Feed> feeds = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "workspace")
+    private List<Emoji> emojis = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

@@ -1,23 +1,27 @@
 package org.minjulog.feedserver.presentation.websocket.dto;
 
-import org.minjulog.feedserver.domain.model.EmojiType;
+import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+
+import java.util.UUID;
 
 public class ReactionPayloadDto {
 
     public record Request(
-            Long feedId,
-            String key,
-            String emoji
-    ) {}
+            UUID feedId,
+            String emojiKey,
+            String unicode
+    ) {
+    }
 
     public record Response(
             Long actorId,
-            Long feedId,
-            String key,
+            UUID feedId,
+            String emojiKey,
             boolean pressedByMe,
-            long count,
+            long emojiCount,
             EmojiType emojiType,
-            String emoji,
+            String unicode,
             String objectKey
-    ) {}
+    ) {
+    }
 }

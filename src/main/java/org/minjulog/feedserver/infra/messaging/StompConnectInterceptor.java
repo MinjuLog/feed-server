@@ -2,8 +2,8 @@ package org.minjulog.feedserver.infra.messaging;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.Profile;
-import org.minjulog.feedserver.domain.repository.ProfileRepository;
+import org.minjulog.feedserver.domain.model.UserProfile;
+import org.minjulog.feedserver.domain.repository.UserProfileRepository;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -18,7 +18,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class StompConnectInterceptor implements ChannelInterceptor {
 
-    private final ProfileRepository profileRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     @Transactional
@@ -26,17 +26,18 @@ public class StompConnectInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            long userId = Long.parseLong(Objects.requireNonNull(accessor.getFirstNativeHeader("userId")));
-
-            Profile existingProfile = profileRepository.findProfileByUserId(userId);
-
-            if (existingProfile == null) {
-                Profile profile = new Profile(userId);
-                profileRepository.saveAndFlush(profile);
-                existingProfile = profile;
+            String rawUserId = Objects.requireNonNull(accessor.getFirstNativeHeader("userId"));
+            long userId;
+            try {
+                userId = Long.parseLong(rawUserId);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("userId must be numeric userId", e);
             }
 
-            accessor.setUser(new StompPrincipal(userId, existingProfile.getUsername()));
+            UserProfile userProfile = userProfileRepository.findByUserId(userId)
+                    .orElseGet(() -> userProfileRepository.saveAndFlush(new UserProfile(userId)));
+
+            accessor.setUser(new StompPrincipal(userProfile.getUserId(), userProfile.getUsername()));
         }
 
         return message;

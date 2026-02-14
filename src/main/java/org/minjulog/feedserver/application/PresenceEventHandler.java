@@ -16,7 +16,7 @@ public class PresenceEventHandler {
 
     private final PresenceStore store;
     private final SimpMessagingTemplate messagingTemplate;
-    private static final String PRESENCE_TOPIC = "/topic/room.1/connect";
+    private static final String PRESENCE_TOPIC = "/topic/workspace.1/connect";
 
     @EventListener
     public void onConnected(SessionConnectedEvent event) {
@@ -25,7 +25,7 @@ public class PresenceEventHandler {
         String userId = acc.getUser() != null ? acc.getUser().getName() : "anonymous";
         store.onConnected(sessionId, userId);
 
-        messagingTemplate.convertAndSend(PRESENCE_TOPIC, new PresenceMessage("JOIN", userId));
+        messagingTemplate.convertAndSend(PRESENCE_TOPIC, new PresenceEventPayload("JOIN", userId));
     }
 
     @EventListener
@@ -40,8 +40,8 @@ public class PresenceEventHandler {
         String userId = store.findUserIdBySessionId(sessionId).orElse("anonymous");
         store.onDisconnected(sessionId);
         messagingTemplate.convertAndSend(PRESENCE_TOPIC,
-                new PresenceMessage("LEAVE", userId));
+                new PresenceEventPayload("LEAVE", userId));
     }
 
-    public record PresenceMessage(String type, String userId) {}
+    public record PresenceEventPayload(String type, String userId) {}
 }

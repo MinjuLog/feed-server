@@ -8,6 +8,6 @@ import java.security.Principal;
 @AllArgsConstructor
 @Getter
 public class StompPrincipal implements Principal {
-    private final long userId;
+    private final Long userId;
     private final String name;
 }

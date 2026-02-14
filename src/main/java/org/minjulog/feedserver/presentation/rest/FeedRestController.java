@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,16 +24,15 @@ public class FeedRestController {
         return ResponseEntity.ok(feedService.findAllFeeds(userId));
     }
 
-    @GetMapping("/api/feeds/{feedId}/reactions/{reactionKey}/users")
+    @GetMapping("/api/feeds/{feedId}/reactions/{emojiKey}/users")
     public ResponseEntity<ReactionDto.PressedUsersResponse> sendReactionPressedUsers(
-            @PathVariable("feedId") Long feedId,
-            @PathVariable("reactionKey") String reactionKey,
+            @PathVariable("feedId") UUID feedId,
+            @PathVariable("emojiKey") String emojiKey,
             @RequestHeader("X-User-Id") Long userId
     ) {
         return ResponseEntity.ok(
                 new ReactionDto.PressedUsersResponse(
-                        feedService.findReactionPressedUsers(
-                                feedId, userId, reactionKey)
+                        feedService.findReactionPressedUsers(feedId, userId, emojiKey)
                 )
         );
     }
@@ -40,15 +40,13 @@ public class FeedRestController {
     @DeleteMapping("/api/feeds/{feedId}")
     public ResponseEntity<Boolean> deleteFeed(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable("feedId") Long feedId
+            @PathVariable("feedId") UUID feedId
     ) {
         return ResponseEntity.ok(feedService.deleteFeed(userId, feedId));
     }
-
 
     @GetMapping("/api/online-users")
     public Set<String> findAllOnlineUsers() {
         return feedService.findAllOnlineUsers();
     }
-
 }

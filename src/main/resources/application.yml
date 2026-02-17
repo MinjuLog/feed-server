@@ -15,6 +15,7 @@ spring:
     open-in-view: false
 
 env:
+  DEPLOY_COLOR: ${DEPLOY_COLOR:unknown}
   MINIO:
     END_POINT: ${MINIO_ENDPOINT:http://localhost:9000}
     ACCESS_KEY: ${MINIO_ACCESS_KEY:access-key}

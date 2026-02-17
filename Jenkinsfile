@@ -50,7 +50,6 @@ pipeline {
             set -e
             cd ${DEPLOY_DIR}
             ./deploy-feed-bluegreen.sh ${BUILD_TAG}
-            EOF
           """
         }
       }

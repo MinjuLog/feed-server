@@ -146,12 +146,13 @@ public class FeedService {
     }
 
     @Transactional
-    public Boolean deleteFeed(Long userId, UUID feedId) {
+    public DeleteFeedResult deleteFeed(Long userId, UUID feedId) {
         Feed feed = feedRepository.findById(feedId)
                 .orElseThrow(() -> new IllegalArgumentException("feed not found"));
+        Long workspaceId = feed.getWorkspace().getId();
 
         if (feed.isDeleted()) {
-            return true;
+            return new DeleteFeedResult(true, workspaceId, feedId);
         }
 
         if (!feed.getAuthorId().equals(userId)) {
@@ -159,7 +160,7 @@ public class FeedService {
         }
 
         feed.delete();
-        return true;
+        return new DeleteFeedResult(true, workspaceId, feedId);
     }
 
     public Set<String> findAllOnlineUsers() {
@@ -199,5 +200,12 @@ public class FeedService {
                         .build()
                 )
                 .toList();
+    }
+
+    public record DeleteFeedResult(
+            boolean deleted,
+            Long workspaceId,
+            UUID feedId
+    ) {
     }
 }

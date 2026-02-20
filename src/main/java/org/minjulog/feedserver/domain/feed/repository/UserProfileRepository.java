@@ -20,4 +20,17 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
                 where p.id in :userProfileIds
             """)
     Set<String> findUsernamesByUserProfileIdIn(@Param("userProfileIds") List<UUID> userProfileIds);
+
+    @Query("""
+                select p.userId as userId, p.username as username
+                from UserProfile p
+                where p.userId in :userIds
+            """)
+    List<UserIdNameView> findUserIdAndNameByUserIdIn(@Param("userIds") List<Long> userIds);
+
+    interface UserIdNameView {
+        Long getUserId();
+
+        String getUsername();
+    }
 }

@@ -1,7 +1,7 @@
-package org.minjulog.feedserver.domain.repository;
+package org.minjulog.feedserver.domain.feed.repository;
 
-import org.minjulog.feedserver.domain.model.Emoji;
-import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.feed.model.Emoji;
+import org.minjulog.feedserver.domain.feed.model.enumerate.EmojiType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

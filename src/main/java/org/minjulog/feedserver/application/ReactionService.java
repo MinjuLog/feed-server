@@ -1,14 +1,14 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.Emoji;
-import org.minjulog.feedserver.domain.model.Feed;
-import org.minjulog.feedserver.domain.model.Reaction;
-import org.minjulog.feedserver.domain.model.UserProfile;
-import org.minjulog.feedserver.domain.repository.EmojiCountRepository;
-import org.minjulog.feedserver.domain.repository.FeedRepository;
-import org.minjulog.feedserver.domain.repository.ReactionRepository;
-import org.minjulog.feedserver.domain.repository.UserProfileRepository;
+import org.minjulog.feedserver.domain.feed.model.Emoji;
+import org.minjulog.feedserver.domain.feed.model.Feed;
+import org.minjulog.feedserver.domain.feed.model.Reaction;
+import org.minjulog.feedserver.domain.feed.model.UserProfile;
+import org.minjulog.feedserver.domain.feed.repository.EmojiCountRepository;
+import org.minjulog.feedserver.domain.feed.repository.FeedRepository;
+import org.minjulog.feedserver.domain.feed.repository.ReactionRepository;
+import org.minjulog.feedserver.domain.feed.repository.UserProfileRepository;
 import org.minjulog.feedserver.presentation.websocket.dto.ReactionPayloadDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

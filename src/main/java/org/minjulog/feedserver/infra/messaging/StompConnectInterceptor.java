@@ -2,8 +2,8 @@ package org.minjulog.feedserver.infra.messaging;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.UserProfile;
-import org.minjulog.feedserver.domain.repository.UserProfileRepository;
+import org.minjulog.feedserver.domain.feed.model.UserProfile;
+import org.minjulog.feedserver.domain.feed.repository.UserProfileRepository;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;

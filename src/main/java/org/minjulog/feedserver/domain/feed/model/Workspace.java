@@ -1,4 +1,4 @@
-package org.minjulog.feedserver.domain.model;
+package org.minjulog.feedserver.domain.feed.model;
 
 import jakarta.persistence.*;
 import lombok.*;

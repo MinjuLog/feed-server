@@ -1,6 +1,7 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
+import org.minjulog.feedserver.domain.feed.model.UserProfile;
 import org.minjulog.feedserver.domain.feed.repository.UserProfileRepository;
 import org.minjulog.feedserver.domain.voice.model.VoiceRoom;
 import org.minjulog.feedserver.domain.voice.repository.VoiceRoomRepository;
@@ -78,9 +79,8 @@ public class VoiceService {
         if (roomId == null || userId == null) {
             throw new IllegalArgumentException("roomId and userId are required");
         }
-        if (!voiceRoomRepository.existsById(roomId)) {
-            throw new IllegalArgumentException("room not found");
-        }
+        voiceRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("room not found"));
         voiceRoomPresenceStore.addUser(roomId, userId);
     }
 
@@ -90,5 +90,40 @@ public class VoiceService {
             throw new IllegalArgumentException("roomId and userId are required");
         }
         voiceRoomPresenceStore.removeUser(roomId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public VoiceRoom getRoom(Long roomId) {
+        return voiceRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("room not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<VoiceRoomDto.UserResponse> getOnlineUsers(Long roomId) {
+        Set<Long> userIds = voiceRoomPresenceStore.getOnlineUsers(roomId);
+        if (userIds.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, String> usernameByUserId =
+                userProfileRepository.findUserIdAndNameByUserIdIn(new ArrayList<>(userIds))
+                        .stream()
+                        .collect(Collectors.toMap(
+                                UserProfileRepository.UserIdNameView::getUserId,
+                                UserProfileRepository.UserIdNameView::getUsername
+                        ));
+
+        return userIds.stream()
+                .map(userId -> new VoiceRoomDto.UserResponse(
+                        userId,
+                        usernameByUserId.get(userId)
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public String getUsername(Long userId) {
+        return userProfileRepository.findByUserId(userId)
+                .map(UserProfile::getUsername)
+                .orElse(null);
     }
 }

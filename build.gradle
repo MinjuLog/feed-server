@@ -28,6 +28,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    implementation 'io.livekit:livekit-server:0.10.1'
     implementation 'io.minio:minio:8.6.0'
 
     compileOnly 'org.projectlombok:lombok'

@@ -1,8 +1,8 @@
-package org.minjulog.feedserver.domain.model;
+package org.minjulog.feedserver.domain.feed.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.feed.model.enumerate.EmojiType;
 
 import java.util.UUID;
 

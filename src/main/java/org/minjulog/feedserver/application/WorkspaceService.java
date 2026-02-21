@@ -2,8 +2,8 @@ package org.minjulog.feedserver.application;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.Workspace;
-import org.minjulog.feedserver.domain.repository.WorkspaceRepository;
+import org.minjulog.feedserver.domain.feed.model.Workspace;
+import org.minjulog.feedserver.domain.feed.repository.WorkspaceRepository;
 import org.minjulog.feedserver.presentation.rest.dto.WorkspaceDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

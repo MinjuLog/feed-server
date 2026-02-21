@@ -1,6 +1,6 @@
-package org.minjulog.feedserver.domain.repository;
+package org.minjulog.feedserver.domain.feed.repository;
 
-import org.minjulog.feedserver.domain.model.Feed;
+import org.minjulog.feedserver.domain.feed.model.Feed;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 

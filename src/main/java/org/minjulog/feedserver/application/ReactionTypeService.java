@@ -1,11 +1,11 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.Emoji;
-import org.minjulog.feedserver.domain.model.Workspace;
-import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
-import org.minjulog.feedserver.domain.repository.EmojiRepository;
-import org.minjulog.feedserver.domain.repository.WorkspaceRepository;
+import org.minjulog.feedserver.domain.feed.model.Emoji;
+import org.minjulog.feedserver.domain.feed.model.Workspace;
+import org.minjulog.feedserver.domain.feed.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.feed.repository.EmojiRepository;
+import org.minjulog.feedserver.domain.feed.repository.WorkspaceRepository;
 import org.minjulog.feedserver.presentation.rest.dto.ReactionDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package org.minjulog.feedserver.presentation.rest.dto;
 
-import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.feed.model.enumerate.EmojiType;
 
 import java.util.List;
 import java.util.Set;

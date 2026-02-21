@@ -1,6 +1,6 @@
 package org.minjulog.feedserver.presentation.websocket.dto;
 
-import org.minjulog.feedserver.domain.model.enumerate.EmojiType;
+import org.minjulog.feedserver.domain.feed.model.enumerate.EmojiType;
 
 import java.util.UUID;
 

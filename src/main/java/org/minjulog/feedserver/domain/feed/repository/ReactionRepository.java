@@ -1,6 +1,6 @@
-package org.minjulog.feedserver.domain.repository;
+package org.minjulog.feedserver.domain.feed.repository;
 
-import org.minjulog.feedserver.domain.model.Reaction;
+import org.minjulog.feedserver.domain.feed.model.Reaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

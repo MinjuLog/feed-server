@@ -1,8 +1,11 @@
 package org.minjulog.feedserver.application;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.model.*;
-import org.minjulog.feedserver.domain.repository.*;
+import org.minjulog.feedserver.domain.feed.model.Attachment;
+import org.minjulog.feedserver.domain.feed.model.Feed;
+import org.minjulog.feedserver.domain.feed.model.UserProfile;
+import org.minjulog.feedserver.domain.feed.model.Workspace;
+import org.minjulog.feedserver.domain.feed.repository.*;
 import org.minjulog.feedserver.infra.cache.PresenceStore;
 import org.minjulog.feedserver.presentation.rest.dto.AttachmentDto;
 import org.minjulog.feedserver.presentation.rest.dto.FeedDto;

@@ -25,7 +25,7 @@ env:
     EXTERNAL_BASE: ${MINIO_EXTERNAL_BASE:http://localhost:1107/minjulog-static}
   LIVEKIT:
     API_KEY: ${LIVEKIT_API_KEY:devkey}
-    API_SECRET: ${LIVEKIT_API_SECRET:devsecret}
+    API_SECRET: ${LIVEKIT_API_SECRET:devsecretdevsecretdevsecretdevsecret}
   VOICE:
     WORKSPACE_ID: ${VOICE_WORKSPACE_ID:1}
   REACTION:

@@ -1,7 +1,7 @@
 package org.minjulog.feedserver.application.feed;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.infra.cache.feed.FeedPresenceStore;
+import org.minjulog.feedserver.infrastructure.cache.FeedPresenceStore;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;

@@ -1,14 +1,22 @@
 package org.minjulog.feedserver.application.voice;
 
+import io.livekit.server.AccessToken;
+import io.livekit.server.RoomJoin;
+import io.livekit.server.RoomName;
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.feed.model.UserProfile;
-import org.minjulog.feedserver.domain.feed.repository.UserProfileRepository;
-import org.minjulog.feedserver.domain.voice.model.VoiceRoom;
-import org.minjulog.feedserver.domain.voice.repository.VoiceRoomRepository;
-import org.minjulog.feedserver.infra.cache.voice.VoiceRoomPresenceStore;
-import org.minjulog.feedserver.presentation.voice.dto.VoiceRoomDto;
+import org.minjulog.feedserver.domain.model.UserProfile;
+import org.minjulog.feedserver.domain.model.VoiceRoom;
+import org.minjulog.feedserver.domain.model.VoiceRoomMessage;
+import org.minjulog.feedserver.infrastructure.cache.VoiceRoomPresenceStore;
+import org.minjulog.feedserver.infrastructure.configuration.LiveKitProperties;
+import org.minjulog.feedserver.domain.repository.UserProfileRepository;
+import org.minjulog.feedserver.domain.repository.VoiceRoomMessageRepository;
+import org.minjulog.feedserver.domain.repository.VoiceRoomRepository;
+import org.minjulog.feedserver.presentation.request.*;
+import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +29,42 @@ import java.util.stream.Collectors;
 public class VoiceService {
 
     private final VoiceRoomRepository voiceRoomRepository;
+    private final VoiceRoomMessageRepository voiceRoomMessageRepository;
     private final VoiceRoomPresenceStore voiceRoomPresenceStore;
     private final UserProfileRepository userProfileRepository;
+    private final LiveKitProperties properties;
+
+    public VoiceResponse.IssueToken issueToken(Long userId, VoiceRequest.IssueToken request) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+        if (request == null || !StringUtils.hasText(request.roomName())) {
+            throw new IllegalArgumentException("roomName is required");
+        }
+        if (!StringUtils.hasText(properties.getApiKey()) || !StringUtils.hasText(properties.getApiSecret())) {
+            throw new IllegalStateException("LiveKit API key/secret is not configured");
+        }
+
+        String identity = userId.toString();
+        String participantName = StringUtils.hasText(request.participantName())
+                ? request.participantName()
+                : "user-" + userId;
+
+        AccessToken token = new AccessToken(properties.getApiKey(), properties.getApiSecret());
+        token.setIdentity(identity);
+        token.setName(participantName);
+        token.addGrants(new RoomJoin(true), new RoomName(request.roomName()));
+
+        return new VoiceResponse.IssueToken(
+                token.toJwt(),
+                request.roomName(),
+                identity,
+                participantName
+        );
+    }
 
     @Transactional(readOnly = true)
-    public List<VoiceRoomDto.RoomResponse> findRooms(Long channelId) {
+    public List<VoiceResponse.ReadRoom> findRooms(Long channelId) {
         List<VoiceRoom> rooms =
                 voiceRoomRepository.findByChannelIdOrderByCreatedAtAsc(channelId);
 
@@ -43,27 +82,20 @@ public class VoiceService {
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
 
-        Map<Long, String> usernameByUserId = allUserIds.isEmpty()
-                ? Map.of()
-                : userProfileRepository.findUserIdAndNameByUserIdIn(new ArrayList<>(allUserIds))
-                .stream()
-                .collect(Collectors.toMap(
-                        UserProfileRepository.UserIdNameView::getUserId,
-                        UserProfileRepository.UserIdNameView::getUsername
-                ));
+        Map<Long, String> usernameByUserId = userProfileRepository.findUsernameMapByUserIds(allUserIds);
 
         return rooms.stream()
                 .map(r -> {
-                    List<VoiceRoomDto.UserResponse> onlineUsers = onlineUserIdsByRoom
+                    List<VoiceResponse.ReadUser> onlineUsers = onlineUserIdsByRoom
                             .getOrDefault(r.getId(), Set.of())
                             .stream()
-                            .map(userId -> new VoiceRoomDto.UserResponse(
+                            .map(userId -> new VoiceResponse.ReadUser(
                                     userId,
                                     usernameByUserId.get(userId)
                             ))
                             .toList();
 
-                    return new VoiceRoomDto.RoomResponse(
+                    return new VoiceResponse.ReadRoom(
                             r.getId(),
                             r.getTitle(),
                             r.isActive(),
@@ -71,6 +103,58 @@ public class VoiceService {
                             onlineUsers
                     );
                 })
+                .toList();
+    }
+
+    @Transactional
+    public VoiceResponse.ReadMessage createMessage(Long roomId, Long userId, VoiceRequest.CreateMessage request) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+        if (roomId == null) {
+            throw new IllegalArgumentException("roomId is required");
+        }
+        if (request == null || !StringUtils.hasText(request.content())) {
+            throw new IllegalArgumentException("content is required");
+        }
+
+        VoiceRoom room = voiceRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("room not found"));
+        UserProfile sender = getOrCreateUserProfile(userId);
+
+        VoiceRoomMessage message = VoiceRoomMessage.builder()
+                .room(room)
+                .senderUserProfile(sender)
+                .content(request.content())
+                .build();
+
+        VoiceRoomMessage saved = voiceRoomMessageRepository.save(message);
+
+        return new VoiceResponse.ReadMessage(
+                saved.getId(),
+                saved.getRoom().getId(),
+                saved.getSenderId(),
+                saved.getSenderName(),
+                saved.getContent(),
+                saved.getCreatedAt().toString()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<VoiceResponse.ReadMessage> findMessages(Long roomId) {
+        if (roomId == null) {
+            throw new IllegalArgumentException("roomId is required");
+        }
+        return voiceRoomMessageRepository.findByRoomIdOrderByCreatedAtAsc(roomId)
+                .stream()
+                .map(m -> new VoiceResponse.ReadMessage(
+                        m.getId(),
+                        m.getRoom().getId(),
+                        m.getSenderId(),
+                        m.getSenderName(),
+                        m.getContent(),
+                        m.getCreatedAt().toString()
+                ))
                 .toList();
     }
 
@@ -150,21 +234,15 @@ public class VoiceService {
     }
 
     @Transactional(readOnly = true)
-    public List<VoiceRoomDto.UserResponse> getOnlineUsers(Long roomId) {
+    public List<VoiceResponse.ReadUser> getOnlineUsers(Long roomId) {
         Set<Long> userIds = voiceRoomPresenceStore.getOnlineUsers(roomId);
         if (userIds.isEmpty()) {
             return List.of();
         }
-        Map<Long, String> usernameByUserId =
-                userProfileRepository.findUserIdAndNameByUserIdIn(new ArrayList<>(userIds))
-                        .stream()
-                        .collect(Collectors.toMap(
-                                UserProfileRepository.UserIdNameView::getUserId,
-                                UserProfileRepository.UserIdNameView::getUsername
-                        ));
+        Map<Long, String> usernameByUserId = userProfileRepository.findUsernameMapByUserIds(userIds);
 
         return userIds.stream()
-                .map(userId -> new VoiceRoomDto.UserResponse(
+                .map(userId -> new VoiceResponse.ReadUser(
                         userId,
                         usernameByUserId.get(userId)
                 ))
@@ -178,9 +256,14 @@ public class VoiceService {
                 .orElse(null);
     }
 
+    private UserProfile getOrCreateUserProfile(Long userId) {
+        return userProfileRepository.findByUserId(userId)
+                .orElseGet(() -> userProfileRepository.saveAndFlush(new UserProfile(userId)));
+    }
+
     public record DisconnectRoomPresence(
             Long channelId,
             Long roomId,
-            List<VoiceRoomDto.UserResponse> onlineUsers
+            List<VoiceResponse.ReadUser> onlineUsers
     ) {}
 }

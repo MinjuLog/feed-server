@@ -1,30 +1,30 @@
 package org.minjulog.feedserver.application.feed;
 
 import lombok.RequiredArgsConstructor;
-import org.minjulog.feedserver.domain.feed.model.Attachment;
-import org.minjulog.feedserver.domain.feed.model.Feed;
-import org.minjulog.feedserver.domain.feed.model.UserProfile;
-import org.minjulog.feedserver.domain.feed.model.Workspace;
-import org.minjulog.feedserver.domain.feed.repository.*;
-import org.minjulog.feedserver.infra.cache.feed.FeedPresenceStore;
-import org.minjulog.feedserver.presentation.feed.dto.AttachmentDto;
-import org.minjulog.feedserver.presentation.feed.dto.FeedDto;
-import org.minjulog.feedserver.presentation.feed.dto.ReactionDto;
-import org.minjulog.feedserver.presentation.feed.dto.AttachmentPayloadDto;
-import org.minjulog.feedserver.presentation.feed.dto.FeedPayloadDto;
+import org.minjulog.feedserver.domain.model.Attachment;
+import org.minjulog.feedserver.domain.model.Feed;
+import org.minjulog.feedserver.domain.model.UserProfile;
+import org.minjulog.feedserver.domain.model.Workspace;
+import org.minjulog.feedserver.domain.repository.FeedReadRepository;
+import org.minjulog.feedserver.infrastructure.cache.FeedPresenceStore;
+import org.minjulog.feedserver.domain.repository.FeedRepository;
+import org.minjulog.feedserver.domain.repository.ReactionRepository;
+import org.minjulog.feedserver.domain.repository.UserProfileRepository;
+import org.minjulog.feedserver.domain.repository.WorkspaceRepository;
+import org.minjulog.feedserver.presentation.request.*;
+import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FeedService {
 
     private final FeedRepository feedRepository;
-    private final EmojiCountRepository emojiCountRepository;
+    private final FeedReadRepository feedReadRepository;
     private final ReactionRepository reactionRepository;
     private final UserProfileRepository userProfileRepository;
     private final WorkspaceRepository workspaceRepository;
@@ -34,7 +34,7 @@ public class FeedService {
     private Long defaultWorkspaceId;
 
     @Transactional
-    public FeedPayloadDto.Response messagingFeed(Long actorId, FeedPayloadDto.Request payload) {
+    public FeedResponse.Create messagingFeed(Long actorId, FeedRequest.Create payload) {
         UserProfile author = getOrCreateUserProfile(actorId);
         Workspace workspace = resolveWorkspace(payload.workspaceId());
 
@@ -48,7 +48,7 @@ public class FeedService {
 
         Feed saved = feedRepository.save(feed);
 
-        return new FeedPayloadDto.Response(
+        return new FeedResponse.Create(
                 saved.getId(),
                 saved.getWorkspace().getId(),
                 saved.getAuthorId(),
@@ -56,7 +56,7 @@ public class FeedService {
                 saved.getContent(),
                 saved.getCreatedAt().toString(),
                 saved.getAttachments().stream()
-                        .map(a -> new AttachmentPayloadDto.Response(
+                        .map(a -> new AttachmentResponse.Attach(
                                 a.getObjectKey(),
                                 a.getOriginalName(),
                                 a.getContentType(),
@@ -68,7 +68,7 @@ public class FeedService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeedDto.Response> findAllFeeds(Long viewerId) {
+    public List<FeedResponse.Read> findAllFeeds(Long viewerId) {
         List<Feed> feeds = feedRepository.findByDeletedFalseOrderByCreatedAtDesc();
         if (feeds.isEmpty()) {
             return List.of();
@@ -76,49 +76,15 @@ public class FeedService {
 
         List<UUID> feedIds = feeds.stream().map(Feed::getId).toList();
 
-        List<ReactionRepository.MyReactionRow> myReactions =
-                reactionRepository.findMyReactions(viewerId, feedIds);
-
-        Map<UUID, Set<String>> myReactionsByFeedId =
-                myReactions.stream()
-                        .collect(Collectors.groupingBy(
-                                ReactionRepository.MyReactionRow::getFeedId,
-                                Collectors.mapping(
-                                        ReactionRepository.MyReactionRow::getEmojiKey,
-                                        Collectors.toSet()
-                                )
-                        ));
-
-        List<EmojiCountRepository.EmojiCountRow> reactionCountRows =
-                emojiCountRepository.findReactionCountsByFeedIds(feedIds);
-
-        Map<UUID, List<ReactionDto.Response>> reactionsByFeedId =
-                reactionCountRows.stream()
-                        .collect(Collectors.groupingBy(
-                                EmojiCountRepository.EmojiCountRow::getFeedId,
-                                Collectors.mapping(row -> {
-                                            Set<String> myKeys = myReactionsByFeedId.getOrDefault(row.getFeedId(), Set.of());
-                                            boolean pressedByMe = myKeys.contains(row.getEmojiKey());
-
-                                            return new ReactionDto.Response(
-                                                    row.getEmojiKey(),
-                                                    row.getEmojiType(),
-                                                    row.getObjectKey(),
-                                                    row.getUnicode(),
-                                                    row.getEmojiCount(),
-                                                    pressedByMe
-                                            );
-                                        },
-                                        Collectors.toList()
-                                )
-                        ));
+        Map<UUID, List<ReactionResponse.Read>> reactionsByFeedId =
+                feedReadRepository.findReactionsByFeedIds(viewerId, feedIds);
 
         return feeds.stream()
                 .map(f -> {
                     UUID feedId = f.getId();
 
-                    List<AttachmentDto.Response> attachmentDtos = f.getAttachments().stream()
-                            .map(a -> new AttachmentDto.Response(
+                    List<AttachmentResponse.Read> attachmentDtos = f.getAttachments().stream()
+                            .map(a -> new AttachmentResponse.Read(
                                     a.getObjectKey(),
                                     a.getOriginalName(),
                                     a.getContentType(),
@@ -126,7 +92,7 @@ public class FeedService {
                             ))
                             .toList();
 
-                    return new FeedDto.Response(
+                    return new FeedResponse.Read(
                             feedId,
                             f.getAuthorId(),
                             f.getAuthorUserProfile().getUsername(),
@@ -189,7 +155,7 @@ public class FeedService {
                 ));
     }
 
-    private List<Attachment> feedAttachmentsDtoToEntity(List<AttachmentPayloadDto.Request> attachments) {
+    private List<Attachment> feedAttachmentsDtoToEntity(List<AttachmentRequest.Attach> attachments) {
         if (attachments == null || attachments.isEmpty()) {
             return List.of();
         }

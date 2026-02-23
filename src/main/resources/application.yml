@@ -18,7 +18,7 @@ spring:
 env:
   DEPLOY_COLOR: ${DEPLOY_COLOR:unknown}
   MINIO:
-    END_POINT: ${MINIO_ENDPOINT:http://localhost:1112}
+    END_POINT: ${MINIO_ENDPOINT:http://localhost:1110}
     ACCESS_KEY: ${MINIO_ACCESS_KEY:minjulog}
     SECRET_KEY: ${MINIO_SECRET_KEY:minjulog}
     BUCKET_NAME: ${MINIO_BUCKET_NAME:minjulog}

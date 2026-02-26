@@ -49,6 +49,7 @@ pipeline {
             ssh -o StrictHostKeyChecking=no ${REMOTE} <<'EOF'
             set -e
             cd ${DEPLOY_DIR}
+            docker compose --env-file .env up -d
             ./deploy-feed-bluegreen.sh ${BUILD_TAG}
           """
         }

@@ -13,4 +13,16 @@ public class LiveKitProperties {
 
     private String apiKey;
     private String apiSecret;
+    private Hybrid hybrid = new Hybrid();
+
+    @Getter
+    @Setter
+    public static class Hybrid {
+        /**
+         * auto | mesh | sfu
+         */
+        private String mode = "auto";
+        private int switchToSfuAt = 3;
+        private int switchToMeshAt = 2;
+    }
 }

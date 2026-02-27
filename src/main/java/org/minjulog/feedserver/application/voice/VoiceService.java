@@ -7,18 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.domain.model.UserProfile;
 import org.minjulog.feedserver.domain.model.VoiceRoom;
 import org.minjulog.feedserver.domain.model.VoiceRoomMessage;
-import org.minjulog.feedserver.infrastructure.cache.VoiceRoomPresenceStore;
-import org.minjulog.feedserver.infrastructure.configuration.LiveKitProperties;
 import org.minjulog.feedserver.domain.repository.UserProfileRepository;
 import org.minjulog.feedserver.domain.repository.VoiceRoomMessageRepository;
 import org.minjulog.feedserver.domain.repository.VoiceRoomRepository;
+import org.minjulog.feedserver.infrastructure.cache.VoiceRoomPresenceStore;
+import org.minjulog.feedserver.infrastructure.cache.VoiceRoomTransportModeStore;
+import org.minjulog.feedserver.infrastructure.configuration.LiveKitProperties;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +31,7 @@ public class VoiceService {
     private final VoiceRoomRepository voiceRoomRepository;
     private final VoiceRoomMessageRepository voiceRoomMessageRepository;
     private final VoiceRoomPresenceStore voiceRoomPresenceStore;
+    private final VoiceRoomTransportModeStore voiceRoomTransportModeStore;
     private final UserProfileRepository userProfileRepository;
     private final LiveKitProperties properties;
 
@@ -86,8 +87,8 @@ public class VoiceService {
 
         return rooms.stream()
                 .map(r -> {
-                    List<VoiceResponse.ReadUser> onlineUsers = onlineUserIdsByRoom
-                            .getOrDefault(r.getId(), Set.of())
+                    Set<Long> roomUserIds = onlineUserIdsByRoom.getOrDefault(r.getId(), Set.of());
+                    List<VoiceResponse.ReadUser> onlineUsers = roomUserIds
                             .stream()
                             .map(userId -> new VoiceResponse.ReadUser(
                                     userId,
@@ -100,7 +101,8 @@ public class VoiceService {
                             r.getTitle(),
                             r.isActive(),
                             r.getCreatedAt().toString(),
-                            onlineUsers
+                            onlineUsers,
+                            resolveHybridTransport(r.getId(), roomUserIds.size())
                     );
                 })
                 .toList();
@@ -256,6 +258,65 @@ public class VoiceService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public VoiceResponse.HybridTransport getHybridTransport(Long roomId) {
+        int participantCount = voiceRoomPresenceStore.getOnlineUsers(roomId).size();
+        return resolveHybridTransport(roomId, participantCount);
+    }
+
+    private VoiceResponse.HybridTransport resolveHybridTransport(Long roomId, int participantCount) {
+        HybridMode configuredMode = HybridMode.from(properties.getHybrid().getMode());
+        int switchToSfuAt = normalizeSwitchToSfuAt(properties.getHybrid().getSwitchToSfuAt());
+        int switchToMeshAt = normalizeSwitchToMeshAt(
+                properties.getHybrid().getSwitchToMeshAt(),
+                switchToSfuAt
+        );
+
+        VoiceTransportMode mode;
+
+        if (configuredMode == HybridMode.MESH) {
+            mode = VoiceTransportMode.MESH;
+            voiceRoomTransportModeStore.putMode(roomId, mode);
+        } else if (configuredMode == HybridMode.SFU) {
+            mode = VoiceTransportMode.SFU;
+            voiceRoomTransportModeStore.putMode(roomId, mode);
+        } else {
+            VoiceTransportMode currentMode = voiceRoomTransportModeStore.getMode(roomId);
+            if (participantCount <= 0) {
+                mode = VoiceTransportMode.MESH;
+                voiceRoomTransportModeStore.clear(roomId);
+            } else if (currentMode == null) {
+                mode = participantCount >= switchToSfuAt ? VoiceTransportMode.SFU : VoiceTransportMode.MESH;
+                voiceRoomTransportModeStore.putMode(roomId, mode);
+            } else if (currentMode == VoiceTransportMode.MESH && participantCount >= switchToSfuAt) {
+                mode = VoiceTransportMode.SFU;
+                voiceRoomTransportModeStore.putMode(roomId, mode);
+            } else if (currentMode == VoiceTransportMode.SFU && participantCount <= switchToMeshAt) {
+                mode = VoiceTransportMode.MESH;
+                voiceRoomTransportModeStore.putMode(roomId, mode);
+            } else {
+                mode = currentMode;
+            }
+        }
+
+        return new VoiceResponse.HybridTransport(
+                mode.name().toLowerCase(),
+                configuredMode.name().toLowerCase(),
+                participantCount,
+                switchToSfuAt,
+                switchToMeshAt
+        );
+    }
+
+    private int normalizeSwitchToSfuAt(int value) {
+        return Math.max(1, value);
+    }
+
+    private int normalizeSwitchToMeshAt(int value, int switchToSfuAt) {
+        int maxMeshThreshold = Math.max(0, switchToSfuAt - 1);
+        return Math.max(0, Math.min(value, maxMeshThreshold));
+    }
+
     private UserProfile getOrCreateUserProfile(Long userId) {
         return userProfileRepository.findByUserId(userId)
                 .orElseGet(() -> userProfileRepository.saveAndFlush(new UserProfile(userId)));
@@ -265,5 +326,23 @@ public class VoiceService {
             Long channelId,
             Long roomId,
             List<VoiceResponse.ReadUser> onlineUsers
-    ) {}
+    ) {
+    }
+
+    private enum HybridMode {
+        AUTO,
+        MESH,
+        SFU;
+
+        static HybridMode from(String mode) {
+            if (!StringUtils.hasText(mode)) {
+                return AUTO;
+            }
+            try {
+                return HybridMode.valueOf(mode.trim().toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                return AUTO;
+            }
+        }
+    }
 }

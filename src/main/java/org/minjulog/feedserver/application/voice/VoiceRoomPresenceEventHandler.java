@@ -53,8 +53,6 @@ public class VoiceRoomPresenceEventHandler {
             return;
         }
 
-        System.out.println(userId);
-
         String username = voiceService.getUsername(disconnectedUserId);
         voiceService.getDisconnectRoomPresences(affectedRoomIds)
                 .forEach(presence -> messagingTemplate.convertAndSend(
@@ -65,7 +63,8 @@ public class VoiceRoomPresenceEventHandler {
                                 presence.roomId(),
                                 disconnectedUserId,
                                 username,
-                                presence.onlineUsers()
+                                presence.onlineUsers(),
+                                voiceService.getHybridTransport(presence.roomId())
                         )
                 ));
     }

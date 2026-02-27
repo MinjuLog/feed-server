@@ -17,8 +17,8 @@ public class VoiceController {
     private static final String VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX = "/topic/voice.channel.";
     private static final String VOICE_ROOM_CHAT_TOPIC_PREFIX = "/topic/voice.room.";
 
-        private final VoiceService voiceService;
-        private final SimpMessagingTemplate messagingTemplate;
+    private final VoiceService voiceService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/api/voice/livekit/token")
     public ResponseEntity<VoiceResponse.IssueToken> issueLiveKitToken(
@@ -35,6 +35,14 @@ public class VoiceController {
         return ResponseEntity.ok(voiceService.findRooms(channelId));
     }
 
+    @GetMapping("/api/voice/rooms/{roomId}/transport")
+    public ResponseEntity<VoiceResponse.HybridTransport> getHybridTransport(
+            @PathVariable("roomId") Long roomId
+    ) {
+        voiceService.getRoom(roomId);
+        return ResponseEntity.ok(voiceService.getHybridTransport(roomId));
+    }
+
     @PostMapping("/api/voice/rooms/{roomId}/join")
     public ResponseEntity<Void> joinRoom(
             @RequestHeader("X-User-Id") Long userId,
@@ -43,6 +51,7 @@ public class VoiceController {
         Long channelId = voiceService.getRoom(roomId).getChannel().getId();
         voiceService.joinRoom(roomId, userId);
         List<VoiceResponse.ReadUser> onlineUsers = voiceService.getOnlineUsers(roomId);
+        VoiceResponse.HybridTransport hybridTransport = voiceService.getHybridTransport(roomId);
         messagingTemplate.convertAndSend(
                 VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX + channelId,
                 new VoiceResponse.ReadPresence(
@@ -51,7 +60,8 @@ public class VoiceController {
                         roomId,
                         userId,
                         voiceService.getUsername(userId),
-                        onlineUsers
+                        onlineUsers,
+                        hybridTransport
                 )
         );
         return ResponseEntity.ok().build();
@@ -65,6 +75,7 @@ public class VoiceController {
         Long channelId = voiceService.getRoom(roomId).getChannel().getId();
         voiceService.leaveRoom(roomId, userId);
         List<VoiceResponse.ReadUser> onlineUsers = voiceService.getOnlineUsers(roomId);
+        VoiceResponse.HybridTransport hybridTransport = voiceService.getHybridTransport(roomId);
         messagingTemplate.convertAndSend(
                 VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX + channelId,
                 new VoiceResponse.ReadPresence(
@@ -73,7 +84,8 @@ public class VoiceController {
                         roomId,
                         userId,
                         voiceService.getUsername(userId),
-                        onlineUsers
+                        onlineUsers,
+                        hybridTransport
                 )
         );
         return ResponseEntity.ok().build();

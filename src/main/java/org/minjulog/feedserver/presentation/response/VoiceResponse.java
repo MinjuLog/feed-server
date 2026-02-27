@@ -29,12 +29,22 @@ public class VoiceResponse {
     ) {
     }
 
+    public record HybridTransport(
+            String effectiveMode,
+            String configuredMode,
+            int participantCount,
+            int switchToSfuAt,
+            int switchToMeshAt
+    ) {
+    }
+
     public record ReadRoom(
             Long id,
             String title,
             boolean active,
             String createdAt,
-            List<ReadUser> onlineUsers
+            List<ReadUser> onlineUsers,
+            HybridTransport hybridTransport
     ) {
     }
 
@@ -44,7 +54,8 @@ public class VoiceResponse {
             Long roomId,
             Long userId,
             String username,
-            List<ReadUser> onlineUsers
+            List<ReadUser> onlineUsers,
+            HybridTransport hybridTransport
     ) {
     }
 }

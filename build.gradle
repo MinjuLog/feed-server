@@ -6,7 +6,7 @@ plugins {
 
 group = 'org.minjulog'
 version = '0.0.1-SNAPSHOT'
-description = 'minjulog-feed-server'
+description = 'feed-server'
 
 java {
     toolchain {

@@ -5,6 +5,8 @@ import org.minjulog.feedserver.application.voice.VoiceService;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,12 @@ public class VoiceController {
 
     private final VoiceService voiceService;
     private final SimpMessagingTemplate messagingTemplate;
+
+    @MessageMapping("/voice/rooms/{roomId}/signal")
+    public void signal(@DestinationVariable String roomId, VoiceRequest.MeshSignalDto payload) {
+        messagingTemplate.convertAndSend("/topic/voice.room." + roomId + ".signal", payload);
+    }
+
 
     @PostMapping("/api/voice/livekit/token")
     public ResponseEntity<VoiceResponse.IssueToken> issueLiveKitToken(

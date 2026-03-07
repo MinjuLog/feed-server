@@ -42,3 +42,14 @@ logging:
     org.springframework.web.socket: ${LOG_WS:DEBUG}
     org.springframework.messaging: ${LOG_MESSAGING:DEBUG}
     org.springframework.messaging.simp.stomp: ${LOG_STOMP:DEBUG}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+
+  metrics:
+    distribution:
+      percentiles-histogram:
+        all: true

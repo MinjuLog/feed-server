@@ -21,7 +21,7 @@ public class FeedController {
 
     @PostMapping("/api/feeds")
     public ResponseEntity<FeedResponse.Create> createFeed(
-            @RequestHeader(value = "X-User-Id", required = false) Long authorId,
+            @RequestHeader("X-User-Id") Long authorId,
             @RequestBody FeedRequest.Create req
     ) {
         FeedResponse.Create saved = feedService.messagingFeed(authorId, req);

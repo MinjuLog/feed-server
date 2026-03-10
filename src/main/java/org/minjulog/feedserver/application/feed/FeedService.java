@@ -35,6 +35,10 @@ public class FeedService {
 
     @Transactional
     public FeedResponse.Create messagingFeed(Long actorId, FeedRequest.Create payload) {
+        if (actorId == null) {
+            throw new IllegalArgumentException("actorId is required");
+        }
+
         UserProfile author = getOrCreateUserProfile(actorId);
         Workspace workspace = resolveWorkspace(payload.workspaceId());
 

@@ -1,24 +1,28 @@
-# 1) Build stage
-FROM eclipse-temurin:21-jdk AS build
+# 1. build stage
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
-COPY gradlew ./
-COPY gradle ./gradle
+# gradle wrapper & 설정만 복사
+COPY gradlew .
+COPY gradle gradle
 COPY build.gradle settings.gradle ./
-RUN chmod +x ./gradlew
 
-# Gradle wrapper / dependency cache warming
-RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew --no-daemon dependencies --configuration runtimeClasspath || true
+# 실행권한
+RUN chmod +x gradlew
 
-COPY src ./src
+# 의존성 캐시 (빌드 ❌)
+RUN ./gradlew --no-daemon dependencies
 
-RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew --no-daemon bootJar -x test
+# 실제 소스 복사
+COPY src src
 
-# 2) Run stage
-FROM eclipse-temurin:21-jre-alpine
+# 빌드
+RUN ./gradlew --no-daemon clean bootJar -x test
+
+# 2. run stage
+FROM eclipse-temurin:21-jre AS runner
 WORKDIR /app
-COPY --from=build /app/build/libs/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
+COPY --from=builder /app/build/libs/*-SNAPSHOT.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

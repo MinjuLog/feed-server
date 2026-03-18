@@ -2,19 +2,19 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle gradle
+COPY gradlew ./
+COPY gradle ./gradle
 COPY build.gradle settings.gradle ./
 RUN chmod +x ./gradlew
 
-# 의존성/gradle 캐시 재사용
+# Gradle wrapper / dependency cache warming
 RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew --no-daemon build -x test
+    ./gradlew --no-daemon dependencies --configuration runtimeClasspath || true
 
-COPY src src
+COPY src ./src
 
 RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew bootJar -x test
+    ./gradlew --no-daemon bootJar -x test
 
 # 2) Run stage
 FROM eclipse-temurin:21-jre-alpine

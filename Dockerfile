@@ -9,7 +9,7 @@ RUN chmod +x ./gradlew
 
 # 의존성/gradle 캐시 재사용
 RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew dependencies
+    ./gradlew --no-daemon build -x test
 
 COPY src src
 

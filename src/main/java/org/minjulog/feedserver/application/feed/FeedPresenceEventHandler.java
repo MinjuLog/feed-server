@@ -2,6 +2,7 @@ package org.minjulog.feedserver.application.feed;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.infrastructure.cache.FeedPresenceStore;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -14,7 +15,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 @RequiredArgsConstructor
 public class FeedPresenceEventHandler {
 
-    private static final String PRESENCE_TOPIC = "/topic/workspace.1/connect";
+    private static final Long DEFAULT_WORKSPACE_ID = 1L;
 
     private final FeedPresenceStore feedPresenceStore;
     private final SimpMessagingTemplate messagingTemplate;
@@ -26,7 +27,10 @@ public class FeedPresenceEventHandler {
         String userId = accessor.getUser() != null ? accessor.getUser().getName() : "anonymous";
 
         feedPresenceStore.onConnected(sessionId, userId);
-        messagingTemplate.convertAndSend(PRESENCE_TOPIC, new FeedPresenceEventPayload("JOIN", userId));
+        messagingTemplate.convertAndSend(
+                MessageDestination.WORKSPACE_FEED_PRESENCE.destination(DEFAULT_WORKSPACE_ID),
+                new FeedPresenceEventPayload("JOIN", userId)
+        );
     }
 
     @EventListener
@@ -46,7 +50,10 @@ public class FeedPresenceEventHandler {
         } else {
             feedPresenceStore.onDisconnected(sessionId);
         }
-        messagingTemplate.convertAndSend(PRESENCE_TOPIC, new FeedPresenceEventPayload("LEAVE", userId));
+        messagingTemplate.convertAndSend(
+                MessageDestination.WORKSPACE_FEED_PRESENCE.destination(DEFAULT_WORKSPACE_ID),
+                new FeedPresenceEventPayload("LEAVE", userId)
+        );
     }
 
     public record FeedPresenceEventPayload(String type, String userId) {

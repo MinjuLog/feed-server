@@ -2,8 +2,10 @@ package org.minjulog.feedserver.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.feed.ReactionService;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReactionController {
 
-    private static final String REACTION_TOPIC = "/topic/workspace.1/reaction";
+    @Value("${env.reaction.workspace-id:1}")
+    private Long workspaceId;
 
-        private final ReactionService reactionService;
+    private final ReactionService reactionService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/api/custom-emojis")
@@ -37,7 +40,10 @@ public class ReactionController {
             @RequestBody ReactionRequest.Apply req
     ) {
         ReactionResponse.Apply result = reactionService.applyReaction(userId, req);
-        messagingTemplate.convertAndSend(REACTION_TOPIC, result);
+        messagingTemplate.convertAndSend(
+                MessageDestination.WORKSPACE_REACTION.destination(workspaceId),
+                result
+        );
         return ResponseEntity.ok(result);
     }
 }

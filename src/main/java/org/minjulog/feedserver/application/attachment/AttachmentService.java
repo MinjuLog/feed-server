@@ -19,10 +19,10 @@ public class AttachmentService {
 
     private final MinioClient minioClient;
 
-    @Value("${env.MINIO.BUCKET_NAME}")
+    @Value("${env.minio.bucket-name}")
     private String bucketName;
 
-    @Value("${env.MINIO.EXTERNAL_BASE}")
+    @Value("${env.minio.external-base}")
     private String externalBase;
 
     public AttachmentResponse.IssuePreSignedUrl issuePreSignedUrl(AttachmentRequest.IssuePreSignedUrl request) throws Exception {

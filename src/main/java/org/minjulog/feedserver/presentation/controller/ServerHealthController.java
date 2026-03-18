@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 @RestController
 public class ServerHealthController {
 
-    @Value("${env.DEPLOY_COLOR}")
+    @Value("${env.deploy-color}")
     private String deployColor;
 
     @GetMapping({"/health", "/api/health"})

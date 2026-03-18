@@ -2,6 +2,7 @@ package org.minjulog.feedserver.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.feed.FeedService;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,10 @@ public class FeedController {
     ) {
         FeedResponse.Create saved = feedService.messagingFeed(authorId, req);
 
-        messagingTemplate.convertAndSend("/topic/workspace." + saved.workspaceId(), saved);
+        messagingTemplate.convertAndSend(
+                MessageDestination.WORKSPACE_FEED.destination(saved.workspaceId()),
+                saved
+        );
         return ResponseEntity.ok(saved);
     }
 
@@ -57,7 +61,7 @@ public class FeedController {
     ) {
         FeedService.DeleteFeedResult result = feedService.deleteFeed(userId, feedId);
         messagingTemplate.convertAndSend(
-                "/topic/workspace." + result.workspaceId() + "/delete",
+                MessageDestination.WORKSPACE_FEED_DELETE.destination(result.workspaceId()),
                 new FeedDeleteEvent(result.feedId(), userId)
         );
         return ResponseEntity.ok(result.deleted());

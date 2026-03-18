@@ -28,7 +28,7 @@ public class VoiceRoomBootstrap implements ApplicationRunner {
     private final JpaVoiceChannelRepository voiceChannelRepository;
     private final JpaVoiceRoomRepository voiceRoomRepository;
 
-    @Value("${env.VOICE.WORKSPACE_ID:1}")
+    @Value("${env.voice.workspace-id:1}")
     private Long defaultWorkspaceId;
 
     @Override

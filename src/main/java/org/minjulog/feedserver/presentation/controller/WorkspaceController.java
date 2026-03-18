@@ -2,6 +2,7 @@ package org.minjulog.feedserver.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.feed.WorkspaceService;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class WorkspaceController {
                 workspaceService.incrementLike(userId, workspaceId, request.delta());
 
         messagingTemplate.convertAndSend(
-                "/topic/workspace." + workspaceId + "/like",
+                MessageDestination.WORKSPACE_LIKE.destination(workspaceId),
                 response
         );
 

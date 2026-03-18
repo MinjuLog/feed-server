@@ -30,7 +30,7 @@ public class FeedService {
     private final WorkspaceRepository workspaceRepository;
     private final FeedPresenceStore feedPresenceStore;
 
-    @Value("${env.REACTION.WORKSPACE_ID:1}")
+    @Value("${env.reaction.workspace-id:1}")
     private Long defaultWorkspaceId;
 
     @Transactional

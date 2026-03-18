@@ -2,6 +2,7 @@ package org.minjulog.feedserver.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.application.voice.VoiceService;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.minjulog.feedserver.presentation.request.*;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VoiceController {
 
-    private static final String VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX = "/topic/voice.channel.";
-    private static final String VOICE_ROOM_CHAT_TOPIC_PREFIX = "/topic/voice.room.";
-
     private final VoiceService voiceService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/voice/rooms/{roomId}/signal")
     public void signal(@DestinationVariable String roomId, VoiceRequest.MeshSignalDto payload) {
-        messagingTemplate.convertAndSend("/topic/voice.room." + roomId + ".signal", payload);
+        messagingTemplate.convertAndSend(
+                MessageDestination.VOICE_ROOM_SIGNAL.destination(roomId),
+                payload
+        );
     }
 
 
@@ -61,7 +62,7 @@ public class VoiceController {
         List<VoiceResponse.ReadUser> onlineUsers = voiceService.getOnlineUsers(roomId);
         VoiceResponse.HybridTransport hybridTransport = voiceService.getHybridTransport(roomId);
         messagingTemplate.convertAndSend(
-                VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX + channelId,
+                MessageDestination.VOICE_CHANNEL_PRESENCE.destination(channelId),
                 new VoiceResponse.ReadPresence(
                         "JOIN",
                         channelId,
@@ -85,7 +86,7 @@ public class VoiceController {
         List<VoiceResponse.ReadUser> onlineUsers = voiceService.getOnlineUsers(roomId);
         VoiceResponse.HybridTransport hybridTransport = voiceService.getHybridTransport(roomId);
         messagingTemplate.convertAndSend(
-                VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX + channelId,
+                MessageDestination.VOICE_CHANNEL_PRESENCE.destination(channelId),
                 new VoiceResponse.ReadPresence(
                         "LEAVE",
                         channelId,
@@ -114,7 +115,7 @@ public class VoiceController {
     ) {
         VoiceResponse.ReadMessage response = voiceService.createMessage(roomId, userId, request);
         messagingTemplate.convertAndSend(
-                VOICE_ROOM_CHAT_TOPIC_PREFIX + roomId + ".chat",
+                MessageDestination.VOICE_ROOM_CHAT.destination(roomId),
                 response
         );
         return ResponseEntity.ok(response);

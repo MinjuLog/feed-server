@@ -2,6 +2,7 @@ package org.minjulog.feedserver.application.voice;
 
 import lombok.RequiredArgsConstructor;
 import org.minjulog.feedserver.infrastructure.cache.VoiceRoomPresenceStore;
+import org.minjulog.feedserver.infrastructure.messaging.MessageDestination;
 import org.minjulog.feedserver.infrastructure.messaging.StompPrincipal;
 import org.minjulog.feedserver.presentation.response.*;
 import org.springframework.context.event.EventListener;
@@ -18,8 +19,6 @@ import java.security.Principal;
 @Component
 @RequiredArgsConstructor
 public class VoiceRoomPresenceEventHandler {
-
-    private static final String VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX = "/topic/voice.channel.";
 
     private final VoiceService voiceService;
     private final VoiceRoomPresenceStore voiceRoomPresenceStore;
@@ -56,7 +55,7 @@ public class VoiceRoomPresenceEventHandler {
         String username = voiceService.getUsername(disconnectedUserId);
         voiceService.getDisconnectRoomPresences(affectedRoomIds)
                 .forEach(presence -> messagingTemplate.convertAndSend(
-                        VOICE_CHANNEL_PRESENCE_TOPIC_PREFIX + presence.channelId(),
+                        MessageDestination.VOICE_CHANNEL_PRESENCE.destination(presence.channelId()),
                         new VoiceResponse.ReadPresence(
                                 "LEAVE",
                                 presence.channelId(),

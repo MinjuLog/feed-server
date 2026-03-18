@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MinioConfig {
 
-    @Value("${env.MINIO.END_POINT}")
+    @Value("${env.minio.end-point}")
     private String MINIO_END_POINT;
 
-    @Value("${env.MINIO.ACCESS_KEY}")
+    @Value("${env.minio.access-key}")
     private String MINIO_ACCESS_KEY;
 
-    @Value("${env.MINIO.SECRET_KEY}")
+    @Value("${env.minio.secret-key}")
     private String MINIO_SECRET_KEY;
 
     @Bean

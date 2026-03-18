@@ -32,7 +32,7 @@ public class ReactionService {
     private final ReactionRepository reactionRepository;
     private final EmojiCountRepository emojiCountRepository;
 
-    @Value("${env.REACTION.WORKSPACE_ID:1}")
+    @Value("${env.reaction.workspace-id:1}")
     private Long defaultWorkspaceId;
 
     @Transactional

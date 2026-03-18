@@ -16,6 +16,7 @@ spring:
     open-in-view: false
 
 stomp:
+  broker-type: ${STOMP_BROKER_TYPE:simple}
   relay:
     host: ${STOMP_RELAY_HOST:localhost}
     port: ${STOMP_RELAY_PORT:61613}

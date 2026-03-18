@@ -15,7 +15,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    private static final String SIMPLE_BROKER = "simple";
+
     private final StompConnectInterceptor stompConnectInterceptor;
+
+    @Value("${stomp.broker-type:simple}")
+    private String brokerType;
 
     @Value("${stomp.relay.host:localhost}")
     private String relayHost;
@@ -44,6 +49,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
+        if (SIMPLE_BROKER.equalsIgnoreCase(brokerType)) {
+            registry.enableSimpleBroker("/topic", "/queue");
+            return;
+        }
+
         registry.enableStompBrokerRelay("/topic", "/queue")
                 .setRelayHost(relayHost)
                 .setRelayPort(relayPort)
